@@ -61,7 +61,9 @@ def extract_run_series(df: pd.DataFrame, run_label: str) -> Dict[str, pd.Series]
     return out
 
 
-def absolute_force_peak(force_s: pd.Series, time_s: pd.Series) -> Tuple[int, float, float]:
+def absolute_force_peak(
+    force_s: pd.Series, time_s: pd.Series
+) -> Tuple[int, float, float]:
     """
     Return (row_index, t_peak, f_peak) for the absolute maximum of |force|.
     If no valid data exist, returns (-1, nan, nan).
@@ -86,43 +88,51 @@ def align_runs_by_abs_force_peak(
     reference_run: str = "Run 1",
     save_aligned_csv: bool = True,
     output_dir: Path = None,
-    encoding: str = "utf-8-sig"
+    encoding: str = "utf-8-sig",
 ) -> Tuple[pd.DataFrame, pd.DataFrame, float]:
     """
     Align runs in a CSV by absolute Force peak time relative to a reference run.
+    Also applies vertical offset to align initial force values to zero.
     """
     df = pd.read_csv(csv_path, encoding=encoding)
     runs = detect_runs(list(df.columns))
     if reference_run not in runs:
         raise ValueError(
-            f"Reference run '{reference_run}' not found. Runs detected: {runs}")
+            f"Reference run '{reference_run}' not found. Runs detected: {runs}"
+        )
 
     run_data = {run: extract_run_series(df, run) for run in runs}
-    _, t_ref, f_ref = absolute_force_peak(run_data[reference_run]["Force (N)"],
-                                          run_data[reference_run]["Time (s)"])
+    _, t_ref, f_ref = absolute_force_peak(
+        run_data[reference_run]["Force (N)"], run_data[reference_run]["Time (s)"]
+    )
     if not np.isfinite(t_ref):
         raise ValueError(
-            f"Could not determine peak time for reference run '{reference_run}'.")
+            f"Could not determine peak time for reference run '{reference_run}'."
+        )
 
     offsets = []
     for run in runs:
         _, t_peak, f_peak = absolute_force_peak(
-            run_data[run]["Force (N)"], run_data[run]["Time (s)"])
+            run_data[run]["Force (N)"], run_data[run]["Time (s)"]
+        )
         dt = (t_peak - t_ref) if np.isfinite(t_peak) else np.nan
-        offsets.append({
-            "Run": run,
-            "Peak |Force| (N)": abs(f_peak) if np.isfinite(f_peak) else np.nan,
-            "Time at Peak (s)": t_peak,
-            "Offset dt (s) vs reference": dt,
-            "Applied Shift (s)": -dt if np.isfinite(dt) else np.nan
-        })
+        offsets.append(
+            {
+                "Run": run,
+                "Peak |Force| (N)": abs(f_peak) if np.isfinite(f_peak) else np.nan,
+                "Time at Peak (s)": t_peak,
+                "Offset dt (s) vs reference": dt,
+                "Applied Shift (s)": -dt if np.isfinite(dt) else np.nan,
+            }
+        )
     offsets_df = pd.DataFrame(offsets)
 
     aligned_blocks = {}
     start_times_after_shift = []
     for run in runs:
-        dt = offsets_df.loc[offsets_df["Run"] == run,
-                            "Offset dt (s) vs reference"].values[0]
+        dt = offsets_df.loc[
+            offsets_df["Run"] == run, "Offset dt (s) vs reference"
+        ].values[0]
         if np.isfinite(dt):
             t_aligned = run_data[run]["Time (s)"] - dt
         else:
@@ -131,10 +141,10 @@ def align_runs_by_abs_force_peak(
         aligned_blocks[(run, "Time (s) [aligned]")] = t_aligned
         aligned_blocks[(run, "Force (N)")] = run_data[run]["Force (N)"]
         aligned_blocks[(run, "Position (m)")] = run_data[run]["Position (m)"]
-        aligned_blocks[(run, "Velocity (m/s)")
-                       ] = run_data[run]["Velocity (m/s)"]
-        aligned_blocks[(run, "Acceleration (m/s²)")
-                       ] = run_data[run]["Acceleration (m/s²)"]
+        aligned_blocks[(run, "Velocity (m/s)")] = run_data[run]["Velocity (m/s)"]
+        aligned_blocks[(run, "Acceleration (m/s²)")] = run_data[run][
+            "Acceleration (m/s²)"
+        ]
 
     left_cut = float(np.nanmax(start_times_after_shift))
 
@@ -144,11 +154,44 @@ def align_runs_by_abs_force_peak(
 
     for run in runs:
         mask = masks[run]
-        for metric in ["Time (s) [aligned]", "Force (N)", "Position (m)", "Velocity (m/s)", "Acceleration (m/s²)"]:
+        for metric in [
+            "Time (s) [aligned]",
+            "Force (N)",
+            "Position (m)",
+            "Velocity (m/s)",
+            "Acceleration (m/s²)",
+        ]:
             series = aligned_blocks[(run, metric)]
             aligned_blocks[(run, metric)] = series[mask].reset_index(drop=True)
 
     aligned_df = pd.concat(aligned_blocks, axis=1)
+
+    initial_forces = []
+    for run in runs:
+        force_series = aligned_df[(run, "Force (N)")]
+        initial_force = first_valid_value(force_series)
+        initial_forces.append(initial_force)
+
+    avg_initial_force = float(np.nanmean(initial_forces))
+
+    for i, run in enumerate(runs):
+        force_offset = initial_forces[i]
+        if np.isfinite(force_offset):
+            aligned_df[(run, "Force (N)")] = (
+                aligned_df[(run, "Force (N)")] - force_offset
+            )
+
+        offsets_df.loc[offsets_df["Run"] == run, "Initial Force (N)"] = initial_forces[
+            i
+        ]
+        offsets_df.loc[offsets_df["Run"] == run, "Force Offset from 0 (N)"] = (
+            initial_forces[i]
+        )
+        offsets_df.loc[offsets_df["Run"] == run, "Applied Vertical Shift (N)"] = (
+            -force_offset if np.isfinite(force_offset) else np.nan
+        )
+
+    offsets_df["Avg Initial Force (N)"] = avg_initial_force
 
     if output_dir is None:
         output_dir = csv_path.parent
@@ -166,7 +209,9 @@ def align_runs_by_abs_force_peak(
     return aligned_df, offsets_df, left_cut
 
 
-def plot_metric_overlay(aligned_df: pd.DataFrame, metric: str, out_dir: Path, title_suffix: str = "") -> Path:
+def plot_metric_overlay(
+    aligned_df: pd.DataFrame, metric: str, out_dir: Path, title_suffix: str = ""
+) -> Path:
     """
     Create an overlay plot for a given metric versus aligned time across all runs.
     Returns the saved PNG path.
@@ -187,14 +232,15 @@ def plot_metric_overlay(aligned_df: pd.DataFrame, metric: str, out_dir: Path, ti
     ax.set_title(ttl)
     ax.legend()
     ax.grid(True)
-    out_path = out_dir / \
-        f"overlay_{metric.replace('/', '_').replace(' ', '_')}.png"
+    out_path = out_dir / f"overlay_{metric.replace('/', '_').replace(' ', '_')}.png"
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return out_path
 
 
-def plot_metric_per_run(aligned_df: pd.DataFrame, metric: str, out_dir: Path, title_suffix: str = "") -> List[Path]:
+def plot_metric_per_run(
+    aligned_df: pd.DataFrame, metric: str, out_dir: Path, title_suffix: str = ""
+) -> List[Path]:
     """
     Create one figure per run for a given metric versus aligned time.
     Returns a list of saved PNG paths.
@@ -217,8 +263,10 @@ def plot_metric_per_run(aligned_df: pd.DataFrame, metric: str, out_dir: Path, ti
         ax.set_title(ttl)
         ax.legend()
         ax.grid(True)
-        out_path = out_dir / \
-            f"{run.replace(' ', '')}_{metric.replace('/', '_').replace(' ', '_')}.png"
+        out_path = (
+            out_dir
+            / f"{run.replace(' ', '')}_{metric.replace('/', '_').replace(' ', '_')}.png"
+        )
         fig.savefig(out_path, dpi=200, bbox_inches="tight")
         plt.close(fig)
         saved.append(out_path)
@@ -230,7 +278,7 @@ def process_csv(
     reference_run: str,
     outputs_root: Path,
     save_aligned_csv: bool,
-    show_plots: bool
+    show_plots: bool,
 ) -> None:
     """
     Process a single CSV: align runs, save aligned artifacts, and generate all time-based plots.
@@ -243,7 +291,7 @@ def process_csv(
         csv_path=csv_path,
         reference_run=reference_run,
         save_aligned_csv=save_aligned_csv,
-        output_dir=file_out_dir
+        output_dir=file_out_dir,
     )
 
     print(f"\n=== File: {csv_path.name} ===")
@@ -255,14 +303,22 @@ def process_csv(
     overlay_dir.mkdir(exist_ok=True)
     perrun_dir.mkdir(exist_ok=True)
 
-    for metric in ["Force (N)", "Position (m)", "Velocity (m/s)", "Acceleration (m/s²)"]:
-        plot_metric_overlay(aligned_df, metric, overlay_dir,
-                            title_suffix=file_stem)
-        plot_metric_per_run(aligned_df, metric, perrun_dir,
-                            title_suffix=file_stem)
+    for metric in [
+        "Force (N)",
+        "Position (m)",
+        "Velocity (m/s)",
+        "Acceleration (m/s²)",
+    ]:
+        plot_metric_overlay(aligned_df, metric, overlay_dir, title_suffix=file_stem)
+        plot_metric_per_run(aligned_df, metric, perrun_dir, title_suffix=file_stem)
 
     if show_plots:
-        for metric in ["Force (N)", "Position (m)", "Velocity (m/s)", "Acceleration (m/s²)"]:
+        for metric in [
+            "Force (N)",
+            "Position (m)",
+            "Velocity (m/s)",
+            "Acceleration (m/s²)",
+        ]:
             runs = sorted(set([c[0] for c in aligned_df.columns]))
             fig, ax = plt.subplots()
             for run in runs:
@@ -290,7 +346,8 @@ def main() -> None:
     --show: display plots interactively in addition to saving PNGs
     """
     parser = argparse.ArgumentParser(
-        description="Align runs by absolute Force peak and plot time-series.")
+        description="Align runs by absolute Force peak and plot time-series."
+    )
     parser.add_argument("--input_dir", type=str, default="data")
     parser.add_argument("--output_dir", type=str, default="outputs")
     parser.add_argument("--reference_run", type=str, default="Run 1")
@@ -314,7 +371,7 @@ def main() -> None:
                 reference_run=args.reference_run,
                 outputs_root=output_dir,
                 save_aligned_csv=not args.no_save_aligned,
-                show_plots=args.show
+                show_plots=args.show,
             )
         except Exception as exc:
             print(f"Failed to process {csv_path.name}: {exc}")
