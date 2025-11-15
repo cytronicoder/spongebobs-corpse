@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import utils
 
 
 METRICS = [
@@ -33,17 +34,7 @@ def detect_runs(columns: List[str]) -> List[str]:
             prefixes.append(col.split(":")[0].strip())
     uniq = sorted(set(prefixes))
 
-    def sort_key(p: str) -> Tuple[int, int, str]:
-        if p.startswith("Run "):
-            m = re.match(r"Run\s+(\d+)", p)
-            if m:
-                return (0, int(m.group(1)), "")
-            return (0, 10_000, p)
-        if p == "Latest":
-            return (1, 0, "")
-        return (2, 0, p)
-
-    return sorted(uniq, key=sort_key)
+    return sorted(uniq, key=utils.sort_run_key)
 
 
 def extract_run_series(df: pd.DataFrame, run_label: str) -> Dict[str, pd.Series]:
@@ -102,7 +93,7 @@ def align_runs_by_abs_force_peak(
         )
 
     run_data = {run: extract_run_series(df, run) for run in runs}
-    _, t_ref, f_ref = absolute_force_peak(
+    _, t_ref, _ = absolute_force_peak(
         run_data[reference_run]["Force (N)"], run_data[reference_run]["Time (s)"]
     )
     if not np.isfinite(t_ref):
@@ -216,7 +207,7 @@ def plot_metric_overlay(
     Create an overlay plot for a given metric versus aligned time across all runs.
     Returns the saved PNG path.
     """
-    runs = sorted(set([c[0] for c in aligned_df.columns]))
+    runs = sorted({c[0] for c in aligned_df.columns})
     fig, ax = plt.subplots()
     for run in runs:
         t = aligned_df[(run, "Time (s) [aligned]")].values
@@ -246,7 +237,7 @@ def plot_metric_per_run(
     Returns a list of saved PNG paths.
     """
     saved = []
-    runs = sorted(set([c[0] for c in aligned_df.columns]))
+    runs = sorted({c[0] for c in aligned_df.columns})
     for run in runs:
         t = aligned_df[(run, "Time (s) [aligned]")].values
         y = aligned_df[(run, metric)].values
@@ -319,8 +310,8 @@ def process_csv(
             "Velocity (m/s)",
             "Acceleration (m/s²)",
         ]:
-            runs = sorted(set([c[0] for c in aligned_df.columns]))
-            fig, ax = plt.subplots()
+            runs = sorted({c[0] for c in aligned_df.columns})
+            _, ax = plt.subplots()
             for run in runs:
                 t = aligned_df[(run, "Time (s) [aligned]")].values
                 y = aligned_df[(run, metric)].values
@@ -373,7 +364,7 @@ def main() -> None:
                 save_aligned_csv=not args.no_save_aligned,
                 show_plots=args.show,
             )
-        except Exception as exc:
+        except (ValueError, IOError, OSError, KeyError) as exc:
             print(f"Failed to process {csv_path.name}: {exc}")
 
 

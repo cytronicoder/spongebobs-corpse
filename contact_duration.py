@@ -16,6 +16,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.signal import savgol_filter
+import utils
 
 
 def extract_thickness_from_filename(filename: str) -> Optional[float]:
@@ -33,19 +34,9 @@ def detect_runs(columns: pd.MultiIndex) -> List[str]:
     Extract unique run labels from aligned DataFrame multi-index columns.
     Returns runs in sorted order (Run 1, Run 2, ..., Latest).
     """
-    runs = sorted(set([col[0] for col in columns]))
+    runs = sorted({col[0] for col in columns})
 
-    def sort_key(p: str) -> Tuple[int, int, str]:
-        if p.startswith("Run "):
-            m = re.match(r"Run\s+(\d+)", p)
-            if m:
-                return (0, int(m.group(1)), "")
-            return (0, 10_000, p)
-        if p == "Latest":
-            return (1, 0, "")
-        return (2, 0, p)
-
-    return sorted(runs, key=sort_key)
+    return sorted(runs, key=utils.sort_run_key)
 
 
 def smooth_signal(
@@ -363,6 +354,49 @@ def perform_regression_analysis(
     }
 
 
+def plot_regression_and_uncertainty(ax, x, y, yerr, reg_stats, colors):
+    """Plot regression line, confidence intervals, and uncertainty bounds."""
+    if not np.isnan(reg_stats["slope"]) and len(x) >= 2:
+        x_fit = np.linspace(x.min() * 0.95, x.max() * 1.05, 100)
+        y_fit = reg_stats["slope"] * x_fit + reg_stats["intercept"]
+
+        n = len(x)
+        t_val = stats.t.ppf(0.975, n - 2)
+        s_err = reg_stats["std_err"]
+
+        x_mean = np.mean(x)
+        sxx = np.sum((x - x_mean) ** 2)
+        se_fit = s_err * np.sqrt(1 / n + (x_fit - x_mean) ** 2 / sxx)
+        ci = t_val * se_fit
+
+        ax.plot(
+            x_fit,
+            y_fit,
+            "-",
+            color=colors["orange"],
+            linewidth=3,
+            label="Best fit",
+            zorder=1,
+        )
+
+        ax.fill_between(
+            x_fit,
+            y_fit - ci,
+            y_fit + ci,
+            alpha=0.2,
+            color=colors["orange"],
+            label="95% CI",
+            zorder=0,
+        )
+
+        slope_uncertainty, intercept_uncertainty = utils.calculate_slope_uncertainty_values(
+            x, y, yerr
+        )
+
+        return slope_uncertainty, intercept_uncertainty, x_fit
+    return None, None, None
+
+
 def plot_duration_vs_thickness(
     results_df: pd.DataFrame,
     aggregated_df: pd.DataFrame,
@@ -380,10 +414,12 @@ def plot_duration_vs_thickness(
         print(f"No data available for {method} method")
         return
 
-    cb_orange = "#E69F00"
-    cb_blue = "#0173B2"
-    cb_pink = "#DE8F05"
-    cb_gray = "#949494"
+    colors = {
+        "orange": "#E69F00",
+        "blue": "#0173B2",
+        "pink": "#DE8F05",
+        "gray": "#949494",
+    }
 
     _, ax = plt.subplots(figsize=(10, 7))
 
@@ -396,7 +432,7 @@ def plot_duration_vs_thickness(
             thickness_data["duration_s"].values,
             alpha=0.5,
             s=80,
-            color=cb_gray,
+            color=colors["gray"],
             edgecolors="black",
             linewidth=0.5,
             label=(
@@ -424,8 +460,8 @@ def plot_duration_vs_thickness(
         capsize=8,
         capthick=2.5,
         label="Mean ± SD",
-        color=cb_blue,
-        ecolor=cb_blue,
+        color=colors["blue"],
+        ecolor=colors["blue"],
         markeredgecolor="black",
         markeredgewidth=1.5,
         linewidth=2.5,
@@ -434,105 +470,22 @@ def plot_duration_vs_thickness(
 
     reg_stats = perform_regression_analysis(aggregated_df, method)
 
-    if not np.isnan(reg_stats["slope"]) and len(x) >= 2:
+    slope_uncertainty, intercept_uncertainty, x_fit = plot_regression_and_uncertainty(
+        ax, x, y, yerr, reg_stats, colors
+    )
 
-        x_fit = np.linspace(x.min() * 0.95, x.max() * 1.05, 100)
-        y_fit = reg_stats["slope"] * x_fit + reg_stats["intercept"]
+    if x_fit is not None:
+        utils.plot_slope_uncertainty_bounds(ax, x, y, yerr, x_fit, colors)
 
-        n = len(x)
-        t_val = stats.t.ppf(0.975, n - 2)
-        s_err = reg_stats["std_err"]
-
-        x_mean = np.mean(x)
-        sxx = np.sum((x - x_mean) ** 2)
-        se_fit = s_err * np.sqrt(1 / n + (x_fit - x_mean) ** 2 / sxx)
-        ci = t_val * se_fit
-
-        ax.plot(
-            x_fit, y_fit, "-", color=cb_orange, linewidth=3, label="Best fit", zorder=1
-        )
-
-        ax.fill_between(
-            x_fit,
-            y_fit - ci,
-            y_fit + ci,
-            alpha=0.2,
-            color=cb_orange,
-            label="95% CI",
-            zorder=0,
-        )
-
-        if len(x) >= 2 and yerr is not None:
-            sort_idx = np.argsort(x)
-            x_sorted = x[sort_idx]
-            y_sorted = y[sort_idx]
-            yerr_sorted = yerr[sort_idx]
-
-            x1_min, y1_min = x_sorted[0], y_sorted[0] + yerr_sorted[0]
-            x2_min, y2_min = x_sorted[-1], y_sorted[-1] - yerr_sorted[-1]
-            slope_min = (y2_min - y1_min) / (x2_min - x1_min)
-            intercept_min = y1_min - slope_min * x1_min
-
-            x1_max, y1_max = x_sorted[0], y_sorted[0] - yerr_sorted[0]
-            x2_max, y2_max = x_sorted[-1], y_sorted[-1] + yerr_sorted[-1]
-            slope_max = (y2_max - y1_max) / (x2_max - x1_max)
-            intercept_max = y1_max - slope_max * x1_max
-
-            y_fit_min = slope_min * x_fit + intercept_min
-            y_fit_max = slope_max * x_fit + intercept_max
-
-            ax.plot(
-                x_fit,
-                y_fit_min,
-                ":",
-                color=cb_pink,
-                linewidth=2.5,
-                alpha=0.8,
-                label="Min slope",
-                zorder=1,
-            )
-            ax.plot(
-                x_fit,
-                y_fit_max,
-                ":",
-                color=cb_pink,
-                linewidth=2.5,
-                alpha=0.8,
-                label="Max slope",
-                zorder=1,
-            )
-
-            slope_uncertainty = abs(slope_max - slope_min) / 2
-            intercept_uncertainty = abs(intercept_max - intercept_min) / 2
-        else:
-            slope_min = slope_max = slope_uncertainty = intercept_uncertainty = None
-
-        def format_uncertainty(value):
-            """Format uncertainty to 1 sf (or 2 sf if starting with 1)"""
-            if value is None or value == 0 or np.isnan(value):
-                return "N/A"
-            magnitude = 10 ** np.floor(np.log10(abs(value)))
-            first_digit = int(abs(value) / magnitude)
-            if first_digit == 1:
-                formatted = f"{value:.2e}" if value < 0.01 else f"{value:.3f}"
-            else:
-                formatted = f"{value:.1e}" if value < 0.01 else f"{value:.2f}"
-
-            if "e" in formatted:
-                mantissa, exp_part = formatted.split("e")
-                exp = int(exp_part)
-                return f"{mantissa} \\times 10^{{{exp}}}"
-            else:
-                return formatted
-
+    if not np.isnan(reg_stats["slope"]):
         textstr = "Equation: $\\tau = m \\cdot h + c$\n"
         textstr += (
             f"$m = {reg_stats['slope']:.6f} \\pm "
-            f"{format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
+            f"{utils.format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
         )
         textstr += (
             f"$c = {reg_stats['intercept']:.4f} \\pm "
-            f"{format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
+            f"{utils.format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
         )
         textstr += f"$R^2 = {reg_stats['r_squared']:.4f}$\t"
         textstr += f"$p = {reg_stats['p_value']:.4f}$"
@@ -545,9 +498,12 @@ def plot_duration_vs_thickness(
             textstr,
             transform=ax.transAxes,
             verticalalignment="top",
-            bbox=dict(
-                boxstyle="round", facecolor="white", alpha=0.9, edgecolor="black"
-            ),
+            bbox={
+                "boxstyle": "round",
+                "facecolor": "white",
+                "alpha": 0.9,
+                "edgecolor": "black",
+            },
             fontsize=14,
             family="monospace",
         )
