@@ -205,7 +205,10 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
     ax1.set_xlabel("Pad Thickness ($h$, mm)", fontsize=16, fontweight="bold")
     ax1.set_ylabel("Contact Duration ($\\tau$, s)", fontsize=16, fontweight="bold")
     ax1.set_title(
-        "Contact Duration ($\\tau$) vs. Thickness ($h$)", fontsize=21, fontweight="bold", pad=15
+        "Contact Duration ($\\tau$) vs. Thickness ($h$)",
+        fontsize=21,
+        fontweight="bold",
+        pad=15,
     )
     ax1.grid(True, alpha=0.35, linestyle="--", linewidth=0.8)
     ax1.legend(loc="best", fontsize=14, framealpha=0.95, edgecolor="black")
@@ -377,7 +380,9 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
 
     ax3.set_xlabel("Pad Thickness ($h$, mm)", fontsize=16, fontweight="bold")
     ax3.set_ylabel("Coefficient of Variation ($CV$, %)", fontsize=16, fontweight="bold")
-    ax3.set_title("Experimental Repeatability ($CV$)", fontsize=21, fontweight="bold", pad=15)
+    ax3.set_title(
+        "Experimental Repeatability ($CV$)", fontsize=21, fontweight="bold", pad=15
+    )
     ax3.axhline(
         5, color=CB_RED, linestyle="--", linewidth=2, alpha=0.6, label="5% threshold"
     )
@@ -390,7 +395,6 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
     plt.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close()
 
-    print(f"✓ Created comprehensive summary plot: {output_path}")
     return output_path
 
 
@@ -458,7 +462,6 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close()
 
-    print(f"✓ Created runs comparison plot: {output_path}")
     return output_path
 
 
@@ -562,7 +565,6 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
         f.write("END OF REPORT\n")
         f.write("=" * 80 + "\n")
 
-    print(f"✓ Generated statistical report: {report_path}")
     return report_path
 
 
@@ -586,11 +588,6 @@ def main():
         print("Please run contact_duration.py first to generate analysis results.")
         return
 
-    print("=" * 80)
-    print("GENERATING COMPREHENSIVE SUMMARY REPORT")
-    print("=" * 80)
-    print(f"Analysis directory: {analysis_dir.resolve()}\n")
-
     summary_csv = analysis_dir / "contact_duration_summary.csv"
     detailed_csv = analysis_dir / "contact_duration_detailed.csv"
 
@@ -600,38 +597,16 @@ def main():
         print(f"  Looking for: {detailed_csv}")
         return
 
-    print("\n1. Creating summary table...")
     summary_table = create_summary_table(summary_csv)
 
     table_path = analysis_dir / "summary_table_formatted.csv"
     summary_table.to_csv(table_path, index=False)
-    print(f"✓ Saved formatted table: {table_path}")
 
-    print("\nSUMMARY TABLE (for your report):")
-    print("-" * 80)
-    print(summary_table.to_string(index=False))
-    print("-" * 80)
-
-    print("\n2. Creating comprehensive visualizations...")
     create_comparison_plots(detailed_csv, summary_csv, analysis_dir)
 
-    print("\n3. Creating individual runs comparison...")
     create_individual_comparison(detailed_csv, analysis_dir)
 
-    print("\n4. Generating statistical report...")
     generate_text_report(summary_csv, detailed_csv, analysis_dir)
-
-    print("\n" + "=" * 80)
-    print("SUMMARY GENERATION COMPLETE")
-    print("=" * 80)
-    print(f"\nAll files saved in: {analysis_dir.resolve()}")
-    print("\nGenerated files:")
-    print("  - summary_table_formatted.csv (clean table for your report)")
-    print("  - comprehensive_summary.png (6-panel visualization)")
-    print("  - runs_comparison.png (run-by-run comparison)")
-    print("  - statistical_report.txt (detailed statistics)")
-    print("\nThese files are publication-ready!")
-    print("=" * 80)
 
 
 if __name__ == "__main__":

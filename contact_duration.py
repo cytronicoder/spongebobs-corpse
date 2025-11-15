@@ -565,8 +565,6 @@ def plot_duration_vs_thickness(
     plt.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close()
 
-    print(f"Saved plot: {output_path}")
-
 
 def plot_annotated_force_profiles(
     aligned_csv_path: Path,
@@ -668,8 +666,6 @@ def plot_annotated_force_profiles(
     plt.savefig(output_path, dpi=250, bbox_inches="tight", facecolor="white")
     plt.close()
 
-    print(f"Saved annotated plot: {output_path}")
-
 
 def main():
     """
@@ -716,16 +712,6 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print("=" * 70)
-    print("CONTACT DURATION ANALYSIS")
-    print("=" * 70)
-    print(f"Input directory: {input_dir.resolve()}")
-    print(f"Output directory: {output_dir.resolve()}")
-    print(f"Detection method: {args.method}")
-    print(f"Force threshold: {args.threshold * 100:.1f}% of peak")
-    print(f"Signal smoothing: {'Disabled' if args.no_smooth else 'Enabled'}")
-    print("=" * 70)
-
     aligned_files = []
     for subdir in input_dir.iterdir():
         if subdir.is_dir():
@@ -738,15 +724,9 @@ def main():
         print("Please run offset.py first to generate aligned data.")
         return
 
-    print(f"\nFound {len(aligned_files)} aligned CSV files:")
-    for f in aligned_files:
-        thickness = extract_thickness_from_filename(f.stem)
-        print(f"  - {f.name} (thickness: {thickness} mm)")
-
     all_results = []
 
     for aligned_csv in aligned_files:
-        print(f"\nProcessing: {aligned_csv.name}")
         try:
             results = analyze_contact_duration_for_file(
                 aligned_csv,
@@ -755,7 +735,6 @@ def main():
                 method=args.method,
             )
             all_results.append(results)
-            print(f"  Analyzed {len(results)} runs")
         except Exception as e:
             print(f"  Error: {e}")
             continue
@@ -768,7 +747,6 @@ def main():
 
     detailed_path = output_dir / "contact_duration_detailed.csv"
     combined_results.to_csv(detailed_path, index=False)
-    print(f"\nSaved detailed results: {detailed_path}")
 
     aggregated = aggregate_by_thickness(combined_results)
 
@@ -778,16 +756,6 @@ def main():
 
     aggregated_path = output_dir / "contact_duration_summary.csv"
     aggregated.to_csv(aggregated_path, index=False)
-    print(f"Saved summary statistics: {aggregated_path}")
-
-    print("\n" + "=" * 70)
-    print("SUMMARY: Contact Duration by Pad Thickness")
-    print("=" * 70)
-    print(aggregated.to_string(index=False))
-
-    print("\n" + "=" * 70)
-    print("REGRESSION ANALYSIS")
-    print("=" * 70)
 
     methods_to_analyze = (
         ["threshold"]
@@ -797,17 +765,6 @@ def main():
 
     for method in methods_to_analyze:
         reg_stats = perform_regression_analysis(aggregated, method)
-        print(f"\n{method.capitalize()} Method:")
-        print(f"  Equation: {reg_stats.get('equation', 'N/A')}")
-        print(f"  R² = {reg_stats['r_squared']:.4f}")
-        print(f"  p-value = {reg_stats['p_value']:.4f}")
-        print(f"  Standard error = {reg_stats['std_err']:.6f}")
-        print(f"  Data points = {reg_stats['n_points']}")
-
-        if reg_stats["p_value"] < 0.05:
-            print(f"  → Statistically significant relationship (p < 0.05)")
-        else:
-            print(f"  → No significant relationship (p >= 0.05)")
 
         plot_path = output_dir / f"contact_duration_vs_thickness_{method}.png"
         plot_duration_vs_thickness(
@@ -815,10 +772,6 @@ def main():
         )
 
     if args.plots:
-        print("\n" + "=" * 70)
-        print("GENERATING ANNOTATED FORCE PROFILES")
-        print("=" * 70)
-
         plots_dir = output_dir / "annotated_profiles"
         plots_dir.mkdir(exist_ok=True)
 
@@ -832,11 +785,6 @@ def main():
                 )
             except Exception as e:
                 print(f"Warning: Could not create plot for {aligned_csv.name}: {e}")
-
-    print("\n" + "=" * 70)
-    print("ANALYSIS COMPLETE")
-    print("=" * 70)
-    print(f"Results saved in: {output_dir.resolve()}")
 
 
 if __name__ == "__main__":
