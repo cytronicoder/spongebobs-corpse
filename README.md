@@ -1,11 +1,11 @@
 ### Investigating Impact Attenuation Through Variable-Thickness Viscoelastic Pads
 
-> [!NOTE]
-> This repository contains the source code and data for my IBDP Physics HL Internal Assessment. It is not intended for public use, and should be used solely for educational purposes. However, you are free to explore the code and data for learning on your own.
-
 We investigated how viscoelastic pads of varying thickness attenuate impacts. We processed force-time data from impact tests on viscoelastic materials, calculated contact durations, and performed statistical evaluations to determine the effectiveness of different pad thicknesses in reducing impact forces.
 
 [![Results](/outputs/contact_analysis_10pct/comprehensive_summary.png)](/outputs/contact_analysis_10pct/comprehensive_summary.png)
+
+> [!NOTE]
+> This repository contains the source code and data for my IBDP Physics HL Internal Assessment. It is not intended for public use, and should be used solely for educational purposes. However, you are free to explore the code and data for learning on your own.
 
 #### Installation
 
