@@ -5,7 +5,6 @@ reference run's peak.
 """
 
 import argparse
-import re
 from pathlib import Path
 from typing import Dict, List, Tuple
 import numpy as np

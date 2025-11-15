@@ -2,6 +2,7 @@
 Shared utilities for data analysis scripts.
 """
 
+import re
 import numpy as np
 from scipy import stats
 
@@ -50,7 +51,7 @@ def perform_linear_regression_with_uncertainty(x, y, yerr):
             s, i, _, _, _ = stats.linregress(x_boot, y_boot)
             slopes.append(s)
             intercepts.append(i)
-        except:
+        except Exception:
             continue
 
     if slopes:
@@ -206,8 +207,6 @@ def get_text_bbox():
 
 def sort_run_key(p):
     """Sort key for runs."""
-    import re
-
     if p.startswith("Run "):
         m = re.match(r"Run\s+(\d+)", p)
         if m:

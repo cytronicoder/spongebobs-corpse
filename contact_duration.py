@@ -10,7 +10,7 @@ The script implements multiple contact detection methods:
 import argparse
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -389,8 +389,8 @@ def plot_regression_and_uncertainty(ax, x, y, yerr, reg_stats, colors):
             zorder=0,
         )
 
-        slope_uncertainty, intercept_uncertainty = utils.calculate_slope_uncertainty_values(
-            x, y, yerr
+        slope_uncertainty, intercept_uncertainty = (
+            utils.calculate_slope_uncertainty_values(x, y, yerr)
         )
 
         return slope_uncertainty, intercept_uncertainty, x_fit
