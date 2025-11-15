@@ -279,7 +279,7 @@ def analyze_contact_duration_for_file(
                     }
                     results.append(result)
 
-        except Exception as e:
+        except (KeyError, ValueError) as e:
             print(f"Warning: Failed to process {run} in {aligned_csv_path.name}: {e}")
             continue
 
@@ -380,13 +380,12 @@ def plot_duration_vs_thickness(
         print(f"No data available for {method} method")
         return
 
-    CB_ORANGE = "#E69F00"
-    CB_BLUE = "#0173B2"
-    CB_GREEN = "#029E73"
-    CB_PINK = "#DE8F05"
-    CB_GRAY = "#949494"
+    cb_orange = "#E69F00"
+    cb_blue = "#0173B2"
+    cb_pink = "#DE8F05"
+    cb_gray = "#949494"
 
-    fig, ax = plt.subplots(figsize=(10, 7))
+    _, ax = plt.subplots(figsize=(10, 7))
 
     for thickness in sorted(method_results["thickness_mm"].unique()):
         if pd.isna(thickness):
@@ -397,7 +396,7 @@ def plot_duration_vs_thickness(
             thickness_data["duration_s"].values,
             alpha=0.5,
             s=80,
-            color=CB_GRAY,
+            color=cb_gray,
             edgecolors="black",
             linewidth=0.5,
             label=(
@@ -425,8 +424,8 @@ def plot_duration_vs_thickness(
         capsize=8,
         capthick=2.5,
         label="Mean ± SD",
-        color=CB_BLUE,
-        ecolor=CB_BLUE,
+        color=cb_blue,
+        ecolor=cb_blue,
         markeredgecolor="black",
         markeredgewidth=1.5,
         linewidth=2.5,
@@ -436,13 +435,12 @@ def plot_duration_vs_thickness(
     reg_stats = perform_regression_analysis(aggregated_df, method)
 
     if not np.isnan(reg_stats["slope"]) and len(x) >= 2:
-        from scipy import stats as sp_stats
 
         x_fit = np.linspace(x.min() * 0.95, x.max() * 1.05, 100)
         y_fit = reg_stats["slope"] * x_fit + reg_stats["intercept"]
 
         n = len(x)
-        t_val = sp_stats.t.ppf(0.975, n - 2)
+        t_val = stats.t.ppf(0.975, n - 2)
         s_err = reg_stats["std_err"]
 
         x_mean = np.mean(x)
@@ -451,7 +449,7 @@ def plot_duration_vs_thickness(
         ci = t_val * se_fit
 
         ax.plot(
-            x_fit, y_fit, "-", color=CB_ORANGE, linewidth=3, label="Best fit", zorder=1
+            x_fit, y_fit, "-", color=cb_orange, linewidth=3, label="Best fit", zorder=1
         )
 
         ax.fill_between(
@@ -459,7 +457,7 @@ def plot_duration_vs_thickness(
             y_fit - ci,
             y_fit + ci,
             alpha=0.2,
-            color=CB_ORANGE,
+            color=cb_orange,
             label="95% CI",
             zorder=0,
         )
@@ -487,7 +485,7 @@ def plot_duration_vs_thickness(
                 x_fit,
                 y_fit_min,
                 ":",
-                color=CB_PINK,
+                color=cb_pink,
                 linewidth=2.5,
                 alpha=0.8,
                 label="Min slope",
@@ -497,7 +495,7 @@ def plot_duration_vs_thickness(
                 x_fit,
                 y_fit_max,
                 ":",
-                color=CB_PINK,
+                color=cb_pink,
                 linewidth=2.5,
                 alpha=0.8,
                 label="Max slope",
@@ -527,9 +525,15 @@ def plot_duration_vs_thickness(
             else:
                 return formatted
 
-        textstr = f"Equation: $\\tau = m \\cdot h + c$\n"
-        textstr += f"$m = {reg_stats['slope']:.6f} \\pm {format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
-        textstr += f"$c = {reg_stats['intercept']:.4f} \\pm {format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
+        textstr = "Equation: $\\tau = m \\cdot h + c$\n"
+        textstr += (
+            f"$m = {reg_stats['slope']:.6f} \\pm "
+            f"{format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
+        )
+        textstr += (
+            f"$c = {reg_stats['intercept']:.4f} \\pm "
+            f"{format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
+        )
         textstr += f"$R^2 = {reg_stats['r_squared']:.4f}$\t"
         textstr += f"$p = {reg_stats['p_value']:.4f}$"
         if reg_stats["p_value"] < 0.05:
@@ -585,9 +589,9 @@ def plot_annotated_force_profiles(
         & (contact_results["method"] == method)
     ]
 
-    CB_COLORS = ["#0173B2", "#DE8F05", "#029E73", "#CC78BC", "#CA9161", "#949494"]
+    cb_colors = ["#0173B2", "#DE8F05", "#029E73", "#CC78BC", "#CA9161", "#949494"]
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    _, ax = plt.subplots(figsize=(14, 7))
 
     contact_windows = []
 
@@ -600,7 +604,7 @@ def plot_annotated_force_profiles(
             if not mask.any():
                 continue
 
-            color = CB_COLORS[idx % len(CB_COLORS)]
+            color = cb_colors[idx % len(cb_colors)]
             ax.plot(
                 time[mask], force[mask], label=run, linewidth=2, alpha=0.8, color=color
             )
@@ -613,7 +617,7 @@ def plot_annotated_force_profiles(
                 if np.isfinite(start) and np.isfinite(end):
                     contact_windows.append((start, end))
 
-        except Exception as e:
+        except (KeyError, ValueError, IndexError) as e:
             print(f"Warning: Could not plot {run}: {e}")
             continue
 
@@ -652,7 +656,8 @@ def plot_annotated_force_profiles(
     ax.set_xlabel("Time (s) [aligned]", fontsize=16, fontweight="bold")
     ax.set_ylabel("Force (N)", fontsize=16, fontweight="bold")
     ax.set_title(
-        f"Force Profiles with Contact Duration Windows\n{aligned_csv_path.stem} (Thickness: {thickness} mm)",
+        f"Force Profiles with Contact Duration Windows\n"
+        f"{aligned_csv_path.stem} (Thickness: {thickness} mm)",
         fontsize=16,
         fontweight="bold",
         pad=15,
@@ -735,7 +740,7 @@ def main():
                 method=args.method,
             )
             all_results.append(results)
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             print(f"  Error: {e}")
             continue
 
@@ -764,8 +769,6 @@ def main():
     )
 
     for method in methods_to_analyze:
-        reg_stats = perform_regression_analysis(aggregated, method)
-
         plot_path = output_dir / f"contact_duration_vs_thickness_{method}.png"
         plot_duration_vs_thickness(
             combined_results, aggregated, plot_path, method=method
@@ -783,7 +786,7 @@ def main():
                     plots_dir,
                     method="threshold",
                 )
-            except Exception as e:
+            except (KeyError, ValueError, IndexError) as e:
                 print(f"Warning: Could not create plot for {aligned_csv.name}: {e}")
 
 

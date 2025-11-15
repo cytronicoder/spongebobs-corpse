@@ -1,11 +1,17 @@
+"""
+Analyze contact duration and peak force data from experimental runs.
+"""
+
 import argparse
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats
 
 
 def create_summary_table(summary_csv: Path) -> pd.DataFrame:
+    """Create a formatted summary table from CSV data."""
     df = pd.read_csv(summary_csv)
 
     table = pd.DataFrame(
@@ -25,19 +31,20 @@ def create_summary_table(summary_csv: Path) -> pd.DataFrame:
 
 
 def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: Path):
+    """Create comprehensive comparison plots for contact duration and force data."""
     detailed_df = pd.read_csv(detailed_csv)
     summary_df = pd.read_csv(summary_csv)
 
     detailed_df = detailed_df[detailed_df["thickness_mm"].notna()]
     summary_df = summary_df[summary_df["thickness_mm"].notna()]
 
-    CB_ORANGE = "#E69F00"
-    CB_BLUE = "#0173B2"
-    CB_GREEN = "#029E73"
-    CB_PINK = "#CC78BC"
-    CB_GRAY = "#949494"
-    CB_YELLOW = "#F0E442"
-    CB_RED = "#D55E00"
+    cb_orange = "#E69F00"
+    cb_blue = "#0173B2"
+    cb_green = "#029E73"
+    cb_pink = "#CC78BC"
+    cb_gray = "#949494"
+    cb_yellow = "#F0E442"
+    cb_red = "#D55E00"
 
     fig = plt.figure(figsize=(20, 6))
     gs = fig.add_gridspec(
@@ -55,7 +62,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             thickness_data["duration_s"],
             alpha=0.6,
             s=100,
-            color=CB_GRAY,
+            color=cb_gray,
             edgecolors="black",
             linewidth=0.8,
             label=(
@@ -70,6 +77,10 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
     y = summary_df["duration_s_mean"].values
     yerr = summary_df["duration_s_std"].values
 
+    # Initialize variables for regression
+    slope = intercept = r_value = p_value = std_err = None
+    slope_uncertainty = intercept_uncertainty = None
+
     ax1.errorbar(
         x,
         y,
@@ -80,16 +91,18 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
         capsize=10,
         capthick=3,
         label="Mean ± SD",
-        color=CB_BLUE,
-        ecolor=CB_BLUE,
+        color=cb_blue,
+        ecolor=cb_blue,
         markeredgecolor="black",
         markeredgewidth=1.5,
         zorder=3,
     )
 
-    if len(x) >= 2:
-        from scipy import stats
+    # Initialize variables for regression
+    slope = intercept = r_value = p_value = std_err = None
+    slope_uncertainty = intercept_uncertainty = None
 
+    if len(x) >= 2:
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
         x_fit = np.linspace(x.min() * 0.95, x.max() * 1.05, 100)
@@ -106,9 +119,9 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit,
             y_fit,
             "-",
-            color=CB_ORANGE,
+            color=cb_orange,
             linewidth=3,
-            label=f"Best fit",
+            label="Best fit",
             zorder=1,
         )
         ax1.fill_between(
@@ -116,7 +129,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             y_fit - ci,
             y_fit + ci,
             alpha=0.2,
-            color=CB_ORANGE,
+            color=cb_orange,
             label="95% CI",
             zorder=0,
         )
@@ -143,7 +156,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit,
             y_fit_min,
             ":",
-            color=CB_PINK,
+            color=cb_pink,
             linewidth=2.5,
             alpha=0.8,
             label="Min slope",
@@ -153,7 +166,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit,
             y_fit_max,
             ":",
-            color=CB_PINK,
+            color=cb_pink,
             linewidth=2.5,
             alpha=0.8,
             label="Max slope",
@@ -183,13 +196,22 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
         else:
             return formatted
 
-    textstr = f"Equation: $\\tau = m \\cdot h + c$\n"
-    textstr += f"$m = {slope:.6f} \\pm {format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
-    textstr += f"$c = {intercept:.4f} \\pm {format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
-    textstr += f"$R^2 = {r_value**2:.4f}$\t"
-    textstr += f"$p = {p_value:.4f}$"
-    if p_value < 0.05:
-        textstr += " *"
+    if slope is not None:
+        textstr = "Equation: $\\tau = m \\cdot h + c$\n"
+        textstr += (
+            f"$m = {slope:.6f} \\pm "
+            f"{format_uncertainty(slope_uncertainty)} \\, \\mathrm{{s/mm}}$\n"
+        )
+        textstr += (
+            f"$c = {intercept:.4f} \\pm "
+            f"{format_uncertainty(intercept_uncertainty)} \\, \\mathrm{{s}}$\n"
+        )
+        textstr += f"$R^2 = {r_value**2:.4f}$\t"
+        textstr += f"$p = {p_value:.4f}$"
+        if p_value < 0.05:
+            textstr += " *"
+    else:
+        textstr = "Insufficient data for regression analysis"
 
     ax1.text(
         0.05,
@@ -229,27 +251,31 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
         linewidth=0,
         capsize=8,
         capthick=2.5,
-        color=CB_ORANGE,
-        ecolor=CB_ORANGE,
+        color=cb_orange,
+        ecolor=cb_orange,
         markeredgecolor="black",
         markeredgewidth=1.5,
         label="Mean ± SD",
         zorder=3,
     )
 
-    if len(x_force) >= 2:
-        from scipy import stats
+    # Initialize variables for force regression
+    slope_force_uncertainty = intercept_force_uncertainty = None
+    slope_force = intercept_force = r_value_force = None
 
-        slope, intercept, r_value, _, _ = stats.linregress(x_force, y_force)
+    if len(x_force) >= 2:
+        slope_force, intercept_force, r_value_force, _, _ = stats.linregress(
+            x_force, y_force
+        )
         x_fit_force = np.linspace(x_force.min() * 0.95, x_force.max() * 1.05, 100)
         y_fit_force = slope * x_fit_force + intercept
         ax2.plot(
             x_fit_force,
             y_fit_force,
             "-",
-            color=CB_BLUE,
+            color=cb_blue,
             linewidth=2.5,
-            label=f"Best fit",
+            label="Best fit",
             alpha=0.8,
             zorder=1,
         )
@@ -276,7 +302,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit_force,
             y_fit_min,
             ":",
-            color=CB_GREEN,
+            color=cb_green,
             linewidth=2.5,
             alpha=0.8,
             zorder=1,
@@ -285,7 +311,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit_force,
             y_fit_max,
             ":",
-            color=CB_GREEN,
+            color=cb_green,
             linewidth=2.5,
             alpha=0.8,
             label="Min slope",
@@ -295,7 +321,7 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
             x_fit_force,
             y_fit_max,
             ":",
-            color=CB_GREEN,
+            color=cb_green,
             linewidth=2.5,
             alpha=0.8,
             label="Max slope",
@@ -326,10 +352,19 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
         else:
             return formatted
 
-    textstr_force = f"Equation: $F = m \\cdot h + c$\n"
-    textstr_force += f"$m = {slope:.6f} \\pm {format_uncertainty_force(slope_force_uncertainty)} \\, \\mathrm{{N/mm}}$\n"
-    textstr_force += f"$c = {intercept:.4f} \\pm {format_uncertainty_force(intercept_force_uncertainty)} \\, \\mathrm{{N}}$\n"
-    textstr_force += f"$R^2 = {r_value**2:.4f}$"
+    if slope_force is not None:
+        textstr_force = "Equation: $F = m \\cdot h + c$\n"
+        textstr_force += (
+            f"$m = {slope_force:.6f} \\pm "
+            f"{format_uncertainty_force(slope_force_uncertainty)} \\, \\mathrm{{N/mm}}$\n"
+        )
+        textstr_force += (
+            f"$c = {intercept_force:.4f} \\pm "
+            f"{format_uncertainty_force(intercept_force_uncertainty)} \\, \\mathrm{{N}}$\n"
+        )
+        textstr_force += f"$R^2 = {r_value_force**2:.4f}$"
+    else:
+        textstr_force = "Insufficient data for force regression analysis"
 
     ax2.text(
         0.05,
@@ -358,18 +393,18 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
 
     bars = ax3.bar(x_cv, cv_values, width=8, alpha=0.75, edgecolor="black", linewidth=2)
 
-    for bar, cv in zip(bars, cv_values):
+    for bar_rect, cv in zip(bars, cv_values):
         if cv > 10:
-            bar.set_color(CB_RED)
+            bar_rect.set_color(cb_red)
         elif cv > 5:
-            bar.set_color(CB_YELLOW)
+            bar_rect.set_color(cb_yellow)
         else:
-            bar.set_color(CB_GREEN)
+            bar_rect.set_color(cb_green)
 
-    for bar, cv in zip(bars, cv_values):
-        height = bar.get_height()
+    for bar_rect, cv in zip(bars, cv_values):
+        height = bar_rect.get_height()
         ax3.text(
-            bar.get_x() + bar.get_width() / 2.0,
+            bar_rect.get_x() + bar_rect.get_width() / 2.0,
             height,
             f"{cv:.1f}%",
             ha="center",
@@ -384,12 +419,12 @@ def create_comparison_plots(detailed_csv: Path, summary_csv: Path, output_dir: P
         "Experimental Repeatability ($CV$)", fontsize=21, fontweight="bold", pad=15
     )
     ax3.axhline(
-        5, color=CB_RED, linestyle="--", linewidth=2, alpha=0.6, label="5% threshold"
+        5, color=cb_red, linestyle="--", linewidth=2, alpha=0.6, label="5% threshold"
     )
     ax3.grid(True, alpha=0.35, axis="y", linestyle="--", linewidth=0.8)
     ax3.legend(fontsize=14, framealpha=0.95, edgecolor="black")
     ax3.tick_params(labelsize=16)
-    ax3.set_ylim(0, max(max(cv_values), 4.75) * 1.2)
+    ax3.set_ylim(0, max(cv_values, 4.75) * 1.2)
 
     output_path = output_dir / "comprehensive_summary.png"
     plt.savefig(output_path, dpi=300, bbox_inches="tight", facecolor="white")
@@ -405,9 +440,9 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
     detailed_df = pd.read_csv(detailed_csv)
     detailed_df = detailed_df[detailed_df["thickness_mm"].notna()]
 
-    CB_COLORS = ["#E69F00", "#0173B2", "#029E73", "#CC78BC", "#F0E442", "#D55E00"]
+    cb_colors = ["#E69F00", "#0173B2", "#029E73", "#CC78BC", "#F0E442", "#D55E00"]
 
-    fig, ax = plt.subplots(figsize=(14, 7))
+    _, ax = plt.subplots(figsize=(14, 7))
 
     runs = detailed_df["run"].unique()
     thickness_values = sorted(detailed_df["thickness_mm"].unique())
@@ -426,7 +461,7 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
                 )
                 for t in thickness_values
             ]
-            color = CB_COLORS[i % len(CB_COLORS)]
+            color = cb_colors[i % len(cb_colors)]
             ax.bar(
                 x + i * width,
                 durations,
@@ -466,6 +501,7 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
 
 
 def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path):
+    """Generate a detailed statistical report in text format."""
     summary_df = pd.read_csv(summary_csv)
     detailed_df = pd.read_csv(detailed_csv)
 
@@ -474,7 +510,7 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
 
     report_path = output_dir / "statistical_report.txt"
 
-    with open(report_path, "w") as f:
+    with open(report_path, "w", encoding="utf-8") as f:
         f.write("=" * 80 + "\n")
         f.write("CONTACT DURATION ANALYSIS - STATISTICAL REPORT\n")
         f.write("=" * 80 + "\n\n")
@@ -498,8 +534,6 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
         f.write("STATISTICAL TESTS\n")
         f.write("-" * 80 + "\n\n")
 
-        from scipy import stats
-
         x = summary_df["thickness_mm"].values
         y = summary_df["duration_s_mean"].values
 
@@ -516,12 +550,10 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
 
             if p_value < 0.05:
                 f.write(
-                    f"  ✓ SIGNIFICANT: Statistically significant relationship (p < 0.05)\n"
+                    "  ✓ SIGNIFICANT: Statistically significant relationship (p < 0.05)\n"
                 )
             else:
-                f.write(
-                    f"  ✗ NOT SIGNIFICANT: No significant relationship (p ≥ 0.05)\n"
-                )
+                f.write("  ✗ NOT SIGNIFICANT: No significant relationship (p ≥ 0.05)\n")
             f.write("\n")
 
         if len(summary_df) >= 3:
@@ -537,11 +569,11 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
 
             if p_anova < 0.05:
                 f.write(
-                    f"  ✓ SIGNIFICANT: At least one thickness differs significantly (p < 0.05)\n"
+                    "  ✓ SIGNIFICANT: At least one thickness differs significantly (p < 0.05)\n"
                 )
             else:
                 f.write(
-                    f"  ✗ NOT SIGNIFICANT: No significant difference between groups (p ≥ 0.05)\n"
+                    "  ✗ NOT SIGNIFICANT: No significant difference between groups (p ≥ 0.05)\n"
                 )
             f.write("\n")
 
@@ -569,6 +601,7 @@ def generate_text_report(summary_csv: Path, detailed_csv: Path, output_dir: Path
 
 
 def main():
+    """Main function to run the analysis pipeline."""
     parser = argparse.ArgumentParser(
         description="Generate comprehensive summary report with visualizations and statistics."
     )
