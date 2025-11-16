@@ -3,6 +3,7 @@
 ## Installation
 
 ### Prerequisites
+
 - Python 3.8 or higher
 - pip package manager
 
@@ -50,6 +51,7 @@ python -c "import numpy, pandas, matplotlib, scipy; print('All dependencies inst
 ### Basic Usage
 
 #### Step 1: Prepare Data
+
 Place your CSV data files in the `data/` directory. Files should follow the naming convention that includes thickness information (e.g., `experiment - 4mm.csv`).
 
 #### Step 2: Run Analysis Script
@@ -61,7 +63,9 @@ python analysis.py
 This will process all aligned data files found in the `outputs/` directory and generate statistical summaries and plots.
 
 #### Step 3: View Results
+
 Check the `outputs/contact_analysis_<threshold>/` directory for:
+
 - Summary statistics tables
 - Detailed measurements
 - Statistical reports
@@ -78,6 +82,7 @@ python contact_duration.py <aligned_data_file.csv> --threshold 0.05 --method thr
 ```
 
 **Parameters:**
+
 - `aligned_data_file.csv`: Path to aligned force-time data file
 - `--threshold`: Force threshold fraction (default: 0.05 = 5% of peak force)
 - `--method`: Contact detection method: `threshold`, `velocity`, or `energy`
@@ -94,6 +99,7 @@ python contact_duration.py outputs/dr\ lee\ go\ brr\ -\ 4mm/dr\ lee\ go\ brr\ -\
 Modify parameters in the scripts for custom analysis:
 
 **In `analysis.py`:**
+
 ```python
 # Adjust bootstrap iterations for uncertainty estimation
 n_boot = 1000  # Increase for more precise uncertainties
@@ -108,6 +114,7 @@ colors = {
 ```
 
 **In `contact_duration.py`:**
+
 ```python
 # Change smoothing parameters
 window_length = 11  # Must be odd

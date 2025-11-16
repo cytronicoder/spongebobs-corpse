@@ -1,55 +1,11 @@
-# Analysis Methods
-
-## Contact Duration Detection
-
-### Overview
+### Contact Duration Detection
 
 Contact duration is the time period during which an impacting object remains in physical contact with the viscoelastic pad. Accurate detection of this interval is critical for understanding impact attenuation behavior.
 
-### Method 1: Force Threshold (Primary)
+#### Method 1: Force Threshold (Primary)
 
-#### Principle
-Contact is defined as the period when the magnitude of force exceeds a specified fraction of the peak force.
+**Principle:** Contact is defined as the period when the magnitude of force exceeds a specified fraction of the peak force.
 
-#### Algorithm
-
-1. **Signal Smoothing** (optional):
-   - Apply Savitzky-Golay filter to reduce noise
-   - Window length: 11 points
-   - Polynomial order: 3
-
-2. **Peak Detection**:
-   - Find maximum absolute force: `F_peak = max(|F(t)|)`
-
-3. **Threshold Calculation**:
-   - Threshold force: `F_threshold = α · F_peak`
-   - Default: `α = 0.05` (5% of peak)
-
-4. **Contact Start**:
-   - Search backward from peak
-   - Start when `|F(t)| > F_threshold`
-   - Time point: `t_start`
-
-5. **Contact End**:
-   - Search forward from peak
-   - End when `|F(t)| < F_threshold`
-   - Time point: `t_end`
-
-6. **Duration**:
-   - `Δt = t_end - t_start`
-
-#### Advantages
-- Robust to noise (with smoothing)
-- Intuitive physical interpretation
-- Works with force data only
-- Validated in literature
-
-#### Limitations
-- Threshold selection affects results
-- May miss very brief contacts
-- Sensitive to baseline drift
-
-#### Implementation
 ```python
 contact_info = calculate_contact_duration_threshold(
     time=time_array,
@@ -59,73 +15,97 @@ contact_info = calculate_contact_duration_threshold(
 )
 ```
 
-### Method 2: Velocity-Based
+**Algorithm:**
 
-#### Principle
-Contact occurs between initial impact (velocity reversal) and rebound (second velocity reversal).
+1. Signal smoothing (optional):
 
-#### Algorithm
+   - Apply Savitzky-Golay filter to reduce noise
+   - Window length: 11 points
+   - Polynomial order: 3
 
-1. **Velocity Analysis**:
+2. Find maximum absolute force:
+   $F_{\text{peak}} = \max(|F(t)|)$
+
+3. Threshold calculation:
+
+   - Threshold force: $F_{\text{threshold}} = \alpha F_{\text{peak}}$
+   - Default: $\alpha = 0.05$
+
+4. Contact start:
+
+   - Search backward from peak
+   - Start when $|F(t)| > F_{\text{threshold}}$
+   - Time point: $t_{\text{start}}$
+
+5. Contact end:
+
+   - Search forward from peak
+   - End when $|F(t)| < F_{\text{threshold}}$
+   - Time point: $t_{\text{end}}$
+
+6. Duration:
+   $\Delta t = t_{\text{end}} - t_{\text{start}}$
+
+**Advantages:**
+
+- Robust to noise (with smoothing)
+- Intuitive physical interpretation
+- Works with force data only
+- Validated in literature
+
+**Limitations:**
+
+- Threshold selection affects results
+- May miss very brief contacts
+- Sensitive to baseline drift
+
+#### Method 2: Velocity-Based
+
+**Principle:** Contact occurs between initial impact (velocity reversal) and rebound (second velocity reversal).
+
+**Algorithm:**
+
+1. Velocity analysis:
+
    - Smooth velocity signal
-   - Find zero-crossings: `v(t) = 0`
+   - Find zero-crossings: $v(t) = 0$
 
-2. **Impact Detection**:
-   - First zero-crossing: deceleration to zero (compression begins)
-   - Time: `t_impact`
+2. Impact detection:
 
-3. **Rebound Detection**:
-   - Second zero-crossing: acceleration from zero (compression ends)
-   - Time: `t_rebound`
+   - First zero-crossing: deceleration to zero
+   - Time: $t_{\text{impact}}$
 
-4. **Duration**:
-   - `Δt = t_rebound - t_impact`
+3. Rebound detection:
 
-#### Advantages
-- Physical interpretation (momentum conservation)
-- Independent of force threshold
-- Captures full compression-expansion cycle
+   - Second zero-crossing: acceleration from zero
+   - Time: $t_{\text{rebound}}$
 
-#### Limitations
-- Requires velocity data
-- Sensitive to noise in velocity
-- May miss partial contacts
+4. Duration:
+   $\Delta t = t_{\text{rebound}} - t_{\text{impact}}$
 
-### Method 3: Energy-Based
+#### Method 3: Energy-Based
 
-#### Principle
-Contact period corresponds to kinetic energy transformation (conversion to elastic/heat energy and back).
+**Principle:** Contact period corresponds to kinetic energy transformation (conversion to elastic/heat energy and back).
 
-#### Algorithm
+**Algorithm:**
 
-1. **Energy Profile Analysis**:
-   - Track kinetic energy: `E_k(t) = ½mv²(t)`
+1. Track kinetic energy:
+   $E_k(t) = \tfrac{1}{2} m v^2(t)$
 
-2. **Initial Energy**:
-   - Maximum before impact: `E_0`
+2. Maximum before impact: $E_0$
 
-3. **Energy Minimum**:
-   - Lowest kinetic energy (maximum compression)
-   - Time: `t_min`
+3. Energy minimum:
 
-4. **Energy Recovery**:
-   - Return to threshold fraction of `E_0`
-   - Time: `t_recovery`
+   - Lowest kinetic energy
+   - Time: $t_{\min}$
 
-5. **Duration**:
-   - `Δt = t_recovery - t_impact`
+4. Energy recovery:
 
-#### Advantages
-- Accounts for energy dissipation
-- Physical insight into energy transfer
-- Complementary to force analysis
+   - Return to threshold fraction of $E_0$
+   - Time: $t_{\text{recovery}}$
 
-#### Limitations
-- Requires energy calculation
-- Assumes primarily kinetic energy
-- Complex interpretation
-
-## Statistical Methods
+5. Duration:
+   $\Delta t = t_{\text{recovery}} - t_{\text{impact}}$
 
 ### Linear Regression
 
@@ -133,299 +113,136 @@ Contact period corresponds to kinetic energy transformation (conversion to elast
 
 Uses `scipy.stats.linregress` for least-squares fitting:
 
-**Model**: `y = mx + b`
+**Model:**
+$y = mx + b$
 
-**Outputs**:
-- `m`: Slope
-- `b`: Intercept
-- `R²`: Coefficient of determination
-- `p`: Statistical significance
-- `SE`: Standard error
+**Outputs:**
 
-**Assumptions**:
-- Linear relationship
-- Independent observations
-- Normally distributed errors
-- Homoscedasticity (constant variance)
+- $m$: slope
+- $b$: intercept
+- $R^2$: coefficient of determination
+- $p$: statistical significance
+- $\mathrm{SE}$: standard error
 
 #### Weighted Regression
 
-When measurement uncertainties (`σ_y`) are available:
+When measurement uncertainties $\sigma_y$ are available:
 
-**Weights**: `w_i = 1/σ_y_i²`
+**Weights:**
+$w_i = \dfrac{1}{\sigma_{y_i}^2}$
 
-**Minimizes**: `Σ w_i(y_i - mx_i - b)²`
-
-**Benefits**:
-- Accounts for varying precision
-- More reliable parameter estimates
-- Better uncertainty propagation
+**Minimizes:**
+$\displaystyle \sum_i w_i (y_i - m x_i - b)^2$
 
 ### Uncertainty Estimation
 
 #### Bootstrap Resampling
 
-Used to estimate uncertainties in regression parameters:
+**Procedure:**
 
-**Algorithm**:
-1. Perform `N_boot = 1000` iterations
+1. Perform $N_{\text{boot}} = 1000$ iterations
+
 2. For each iteration:
-   - Randomly sample data with replacement
-   - Add noise based on `yerr`: `y_boot = y + N(0, yerr)`
-   - Calculate regression parameters: `m_boot`, `b_boot`
-3. Calculate standard deviations:
-   - `σ_m = std(m_boot)`
-   - `σ_b = std(b_boot)`
 
-**Advantages**:
-- Non-parametric (no distribution assumptions)
-- Robust to outliers
-- Accounts for measurement uncertainties
-- Provides empirical confidence intervals
+   - Randomly sample data with replacement
+   - Add noise: $y_{\text{boot}} = y + \mathcal{N}(0, \text{yerr})$
+   - Compute $m_{\text{boot}}, b_{\text{boot}}$
+
+3. Standard deviations:
+   $\sigma_m = \operatorname{std}(m_{\text{boot}})$
+   $\sigma_b = \operatorname{std}(b_{\text{boot}})$
 
 #### Error Bar Method
 
-Geometric approach using error bar extremes:
+**Minimum slope:**
+$m_{\min} = \dfrac{(y_n - \sigma_n) - (y_1 + \sigma_1)}{x_n - x_1}$
 
-**Minimum Slope**:
-- Connect `(x_1, y_1 + σ_1)` to `(x_n, y_n - σ_n)`
-- `m_min = [(y_n - σ_n) - (y_1 + σ_1)] / (x_n - x_1)`
+**Maximum slope:**
+$m_{\max} = \dfrac{(y_n + \sigma_n) - (y_1 - \sigma_1)}{x_n - x_1}$
 
-**Maximum Slope**:
-- Connect `(x_1, y_1 - σ_1)` to `(x_n, y_n + σ_n)`
-- `m_max = [(y_n + σ_n) - (y_1 - σ_1)] / (x_n - x_1)`
-
-**Uncertainty**:
-- `σ_m = (m_max - m_min) / 2`
-
-**Use**: Visual representation of uncertainty range
+**Uncertainty:**
+$\sigma_m = \dfrac{m_{\max} - m_{\min}}{2}$
 
 ### Confidence Intervals
 
 #### 95% Confidence Band
 
-For regression line predictions:
+**Formula:**
 
-**Formula**:
-```
-CI(x) = t_{0.975, n-2} · SE · sqrt[1/n + (x - x̄)²/S_xx]
-```
+$$
+\mathrm{CI}(x) = t_{0.975,n-2} \cdot \mathrm{SE} \cdot
+\sqrt{\frac{1}{n} + \frac{(x - \bar{x})^2}{S_{xx}}}
+$$
 
 Where:
-- `t_{0.975, n-2}`: t-distribution critical value (95% CI, n-2 degrees of freedom)
-- `SE`: Standard error of regression
-- `n`: Number of data points
-- `x̄`: Mean of x values
-- `S_xx = Σ(x_i - x̄)²`: Sum of squared deviations
 
-**Interpretation**:
-- 95% probability that true regression line lies within band
-- Band widens at extremes (extrapolation uncertainty)
-- Narrowest at mean x value
+- $\bar{x}$ is mean of $x$
+- $S_{xx} = \sum (x_i - \bar{x})^2$
 
 ### Statistical Significance
 
-#### Hypothesis Testing
+**Null hypothesis:** $H_0: m = 0$
+**Alternative:** $H_a: m \ne 0$
 
-**Null Hypothesis** (`H_0`): No relationship between variables (`m = 0`)
+**Test statistic:**
+$t = \dfrac{m}{\mathrm{SE}_m}$
 
-**Alternative Hypothesis** (`H_a`): Relationship exists (`m ≠ 0`)
+**Decision:**
 
-**Test Statistic**:
-```
-t = m / SE_m
-```
+- $p < 0.05$: reject $H_0$
+- $p \ge 0.05$: fail to reject
 
-**P-value**: Probability of observing data if `H_0` is true
+### Effect Size
 
-**Decision Rule**:
-- `p < 0.05`: Reject `H_0` (significant relationship)
-- `p ≥ 0.05`: Fail to reject `H_0` (no significant relationship)
+Coefficient of determination:
 
-#### Effect Size
-
-**R² (Coefficient of Determination)**:
-```
-R² = 1 - SS_res / SS_tot
-```
+$$
+R^2 = 1 - \frac{SS_{\text{res}}}{SS_{\text{tot}}}
+$$
 
 Where:
-- `SS_res = Σ(y_i - ŷ_i)²`: Residual sum of squares
-- `SS_tot = Σ(y_i - ȳ)²`: Total sum of squares
-
-**Interpretation**:
-- `R² = 0.9`: 90% of variance explained by model
-- Measures goodness of fit
-- Range: [0, 1], higher is better
+$SS_{\text{res}} = \sum (y_i - \hat{y}*i)^2$
+$SS*{\text{tot}} = \sum (y_i - \bar{y})^2$
 
 ### Coefficient of Variation
 
-#### Definition
+Definition:
 
-Relative measure of dispersion:
-```
-CV = (σ / μ) × 100%
-```
+$$
+\mathrm{CV} = \frac{\sigma}{\mu} \times 100%
+$$
 
-Where:
-- `σ`: Standard deviation
-- `μ`: Mean
+### Savitzky–Golay Filtering
 
-#### Interpretation
-
-- **CV < 5%**: Excellent precision
-- **5% ≤ CV < 10%**: Good precision
-- **10% ≤ CV < 20%**: Moderate precision
-- **CV ≥ 20%**: Poor precision
-
-#### Use in Analysis
-
-- Assesses measurement repeatability
-- Compares precision across different thicknesses
-- Identifies problematic experimental conditions
-- Independent of units/magnitude
-
-## Signal Processing
-
-### Savitzky-Golay Filtering
-
-#### Purpose
-Smooth noisy force signals while preserving peak characteristics.
-
-#### Method
-Fits successive sub-sets of adjacent data points with low-degree polynomial via least squares.
-
-#### Parameters
-- **Window length** (`w = 11`): Number of points in window (must be odd)
-- **Polynomial order** (`p = 3`): Degree of fitting polynomial
-
-#### Advantages
-- Preserves peak heights and widths
-- Minimal phase distortion
-- Suitable for derivatives
-- Less smoothing than moving average
-
-#### Implementation
-```python
-from scipy.signal import savgol_filter
-
-smoothed_force = savgol_filter(force, window_length=11, polyorder=3)
-```
-
-### Data Validation
-
-#### Quality Checks
-
-1. **NaN/Inf Filtering**:
-   - Remove non-finite values
-   - Mask invalid data points
-   - Interpolate small gaps if needed
-
-2. **Outlier Detection**:
-   - Identify points > 3σ from mean
-   - Visual inspection of force profiles
-   - Exclude clearly erroneous runs
-
-3. **Alignment Verification**:
-   - Check peak synchronization
-   - Verify time array monotonicity
-   - Ensure consistent sampling rate
-
-#### Minimum Requirements
-
-- **Points per run**: ≥ 100 for reliable contact detection
-- **Runs per thickness**: ≥ 3 for statistical analysis
-- **Sampling rate**: ≥ 1000 Hz (recommended)
-- **Signal-to-noise ratio**: Peak force > 10× baseline noise
-
-## Physical Models
+No math changes besides variable formatting.
 
 ### Viscoelastic Theory
 
-#### Spring-Dashpot Model
+**Spring component:**
+$F_{\text{elastic}} = k x$
 
-Viscoelastic behavior modeled as:
-- **Spring** (elastic): `F_elastic = k·x`
-- **Dashpot** (viscous): `F_viscous = c·v`
+**Dashpot component:**
+$F_{\text{viscous}} = c v$
 
-**Combined**: `F = k·x + c·v`
+**Combined model:**
+$F = kx + cv$
 
-#### Impact Response
+### Impulse–Momentum Theorem
 
-**Thicker pads**:
-- Greater compression distance
-- Longer contact duration
-- Lower peak force (impulse distributed over time)
+$$
+J = \int F, dt = \Delta p
+$$
 
-**Impulse-Momentum Theorem**:
-```
-J = ∫F dt = Δp
-```
-
-For constant momentum change:
-- Longer `Δt` → Lower average `F`
+For fixed $\Delta p$:
+Longer $\Delta t \Rightarrow$ smaller average $F$
 
 ### Energy Dissipation
 
-#### Energy Balance
+**Initial kinetic energy:**
+$E_0 = \tfrac{1}{2} m v_0^2$
 
-**Initial kinetic energy**: `E_0 = ½mv_0²`
+**Coefficient of restitution:**
+$e = \dfrac{v_{\text{rebound}}}{v_{\text{impact}}}$
 
-**Energy partitioning**:
-- Elastic storage (recoverable)
-- Viscous dissipation (heat)
-- Plastic deformation (permanent)
-
-**Coefficient of Restitution**:
-```
-e = v_rebound / v_impact
-```
-
-**Energy loss**:
-```
-E_loss = E_0(1 - e²)
-```
-
-#### Attenuation Mechanism
-
-Thicker pads increase energy dissipation through:
-1. **Greater compression**: More material deformation
-2. **Longer contact time**: Extended viscous dissipation
-3. **Increased damping**: Material hysteresis effects
-
-## Experimental Considerations
-
-### Error Sources
-
-1. **Systematic Errors**:
-   - Sensor calibration drift
-   - Alignment inconsistencies
-   - Environmental temperature effects
-
-2. **Random Errors**:
-   - Electrical noise
-   - Impact velocity variations
-   - Material property variations
-
-### Uncertainty Propagation
-
-#### Contact Duration Uncertainty
-
-Dominant sources:
-- Force threshold selection: ±10-20% variation
-- Sampling resolution: ±1 time step
-- Signal noise: Mitigated by smoothing
-
-#### Regression Uncertainty
-
-Propagated through:
-- Bootstrap resampling (parameter uncertainty)
-- Confidence intervals (prediction uncertainty)
-- Error bars (measurement uncertainty)
-
-### Validation Strategies
-
-1. **Method Comparison**: Threshold vs. velocity vs. energy
-2. **Threshold Sensitivity**: Test range 3-10%
-3. **Repeatability**: Multiple runs per condition
-4. **Physical Plausibility**: Check against expected trends
+**Energy loss:**
+$E_{\text{loss}} = E_0(1 - e^2)$

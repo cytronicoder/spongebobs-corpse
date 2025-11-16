@@ -9,11 +9,13 @@
 **Cause**: Required package not installed.
 
 **Solution**:
+
 ```bash
 pip install numpy pandas matplotlib scipy
 ```
 
 **If using virtual environment**:
+
 ```bash
 # Ensure virtual environment is activated
 source venv/bin/activate  # macOS/Linux
@@ -28,6 +30,7 @@ pip install numpy pandas matplotlib scipy
 **Cause**: Outdated scipy version.
 
 **Solution**:
+
 ```bash
 pip install --upgrade scipy
 ```
@@ -37,6 +40,7 @@ pip install --upgrade scipy
 **Cause**: Insufficient permissions for global installation.
 
 **Solution**:
+
 ```bash
 # Option 1: Use virtual environment (recommended)
 python -m venv venv
@@ -54,6 +58,7 @@ pip install --user numpy pandas matplotlib scipy
 **Cause**: Incorrect file path or file doesn't exist.
 
 **Solution**:
+
 ```bash
 # Verify file exists
 ls -lh "outputs/dr lee go brr - 4mm/dr lee go brr - 4mm_aligned.csv"
@@ -70,12 +75,15 @@ pwd
 **Cause**: Malformed CSV file or incorrect encoding.
 
 **Solution**:
+
 1. Check CSV structure:
+
    ```bash
    head -20 file.csv
    ```
 
 2. Verify encoding:
+
    ```bash
    file -I file.csv  # Check encoding
    ```
@@ -90,7 +98,9 @@ pwd
 **Cause**: Column names don't match expected format.
 
 **Solution**:
+
 1. Check column names:
+
    ```python
    import pandas as pd
    df = pd.read_csv("file.csv", header=[0,1])
@@ -98,6 +108,7 @@ pwd
    ```
 
 2. Verify multi-level structure:
+
    - Level 0: Run identifiers (Run 1, Run 2, etc.)
    - Level 1: Data types (time_s, force_N)
 
@@ -117,7 +128,9 @@ pwd
 **Cause**: Mismatched array lengths in regression.
 
 **Solution**:
+
 1. Check data filtering:
+
    ```python
    print(f"x length: {len(x)}, y length: {len(y)}")
    ```
@@ -135,7 +148,9 @@ pwd
 **Cause**: Incorrect threshold or misaligned data.
 
 **Solution**:
+
 1. Check force signal:
+
    ```python
    import matplotlib.pyplot as plt
    plt.plot(time, force)
@@ -145,6 +160,7 @@ pwd
    ```
 
 2. Adjust threshold:
+
    ```bash
    # Try different thresholds
    python contact_duration.py file.csv --threshold 0.03  # Lower
@@ -160,6 +176,7 @@ pwd
 **Cause**: Division by zero or NaN values.
 
 **Solution**:
+
 ```python
 # Check for zero/NaN values
 print(f"Zero values in denominator: {np.sum(denominator == 0)}")
@@ -175,13 +192,16 @@ result = numerator / denominator_safe
 **Cause**: Data not properly separated by run, or smoothing over-applied.
 
 **Solution**:
+
 1. Verify run separation:
+
    ```python
    runs = detect_runs(df.columns)
    print(f"Detected runs: {runs}")
    ```
 
 2. Check smoothing parameters:
+
    ```bash
    # Disable smoothing
    python contact_duration.py file.csv --no-smooth
@@ -200,6 +220,7 @@ result = numerator / denominator_safe
 **Cause**: Data filtering removed all points, or display issue.
 
 **Solution**:
+
 ```python
 # Check data before plotting
 print(f"Data points: {len(x)}")
@@ -218,6 +239,7 @@ plt.savefig('debug_plot.png')
 **Cause**: Extreme axis limits or line color issue.
 
 **Solution**:
+
 ```python
 # Check fitted values
 print(f"y_fit range: {y_fit.min()} to {y_fit.max()}")
@@ -235,7 +257,9 @@ ax.plot(x_fit, y_fit, 'r-', linewidth=3)  # Red, thick line
 **Cause**: Threshold too high/low or baseline offset.
 
 **Solution**:
+
 1. Visualize threshold:
+
    ```python
    plt.plot(time, force, label='Force')
    plt.axhline(y=threshold_force, color='r', linestyle='--', label='Threshold')
@@ -246,6 +270,7 @@ ax.plot(x_fit, y_fit, 'r-', linewidth=3)  # Red, thick line
    ```
 
 2. Adjust threshold:
+
    - Too early start: Increase threshold
    - Too late start: Decrease threshold
 
@@ -263,6 +288,7 @@ ax.plot(x_fit, y_fit, 'r-', linewidth=3)  # Red, thick line
 **Cause**: Insufficient data points or perfect correlation.
 
 **Solution**:
+
 ```python
 # Check data points
 print(f"Number of points: {len(x)}")
@@ -277,7 +303,9 @@ if len(x) < 3:
 **Cause**: Model fits worse than horizontal line (mean).
 
 **Solution**:
+
 1. Check data quality:
+
    ```python
    plt.scatter(x, y)
    plt.xlabel('Thickness')
@@ -286,15 +314,17 @@ if len(x) < 3:
    ```
 
 2. Verify expected relationship:
+
    - Duration should increase with thickness
    - Force should decrease with thickness
 
 3. Investigate outliers:
+
    ```python
    # Calculate residuals
    y_pred = slope * x + intercept
    residuals = y - y_pred
-   
+
    # Identify large residuals
    outliers = np.abs(residuals) > 2 * np.std(residuals)
    print(f"Outliers: {np.sum(outliers)}")
@@ -305,6 +335,7 @@ if len(x) < 3:
 **Cause**: High data scatter or small sample size.
 
 **Solution**:
+
 1. Increase number of runs per thickness
 2. Improve experimental control (reduce CV)
 3. Check for systematic errors
@@ -317,6 +348,7 @@ if len(x) < 3:
 **Cause**: Script error, permissions, or incorrect output path.
 
 **Solution**:
+
 ```bash
 # Check for errors in terminal output
 python contact_duration.py file.csv 2>&1 | tee output.log
@@ -334,8 +366,10 @@ chmod 755 outputs/contact_analysis_5pct
 **Cause**: No valid data processed or all runs failed.
 
 **Solution**:
+
 1. Check console output for warnings
 2. Verify input data validity:
+
    ```python
    df = pd.read_csv("aligned.csv", header=[0,1])
    print(f"Runs detected: {detect_runs(df.columns)}")
@@ -351,6 +385,7 @@ chmod 755 outputs/contact_analysis_5pct
 **Cause**: Data plotted outside visible range or transparent.
 
 **Solution**:
+
 ```python
 # Before saving, check axis limits
 ax.relim()
@@ -370,12 +405,15 @@ fig.patch.set_facecolor('white')
 **Cause**: Large dataset or inefficient operations.
 
 **Solution**:
+
 1. Reduce bootstrap iterations:
+
    ```python
    n_boot = 100  # Reduced from 1000
    ```
 
 2. Optimize smoothing:
+
    ```python
    # Skip smoothing for large datasets
    smooth = False
@@ -391,7 +429,9 @@ fig.patch.set_facecolor('white')
 **Cause**: Insufficient RAM for dataset.
 
 **Solution**:
+
 1. Process in chunks:
+
    ```python
    # Read CSV in chunks
    chunk_size = 10000
@@ -400,6 +440,7 @@ fig.patch.set_facecolor('white')
    ```
 
 2. Reduce data precision:
+
    ```python
    df = pd.read_csv(file, dtype={'force_N': 'float32'})
    ```
@@ -415,16 +456,16 @@ fig.patch.set_facecolor('white')
 
 ### Common Errors
 
-| Error Message | Likely Cause | Solution |
-|---------------|--------------|----------|
-| `FileNotFoundError` | File path incorrect | Check path, use absolute path |
-| `KeyError: 'column_name'` | Missing column | Verify CSV structure |
-| `ValueError: array size mismatch` | Inconsistent data lengths | Check for NaN, filter consistently |
-| `RuntimeWarning: divide by zero` | Zero in denominator | Add safeguards, check data |
-| `MemoryError` | Dataset too large | Process in chunks, reduce precision |
-| `ImportError` | Missing package | Install required packages |
-| `TypeError: unsupported operand` | Wrong data type | Convert to numeric, check types |
-| `IndexError: index out of range` | Array access error | Check array lengths, use bounds |
+| Error Message                     | Likely Cause              | Solution                            |
+| --------------------------------- | ------------------------- | ----------------------------------- |
+| `FileNotFoundError`               | File path incorrect       | Check path, use absolute path       |
+| `KeyError: 'column_name'`         | Missing column            | Verify CSV structure                |
+| `ValueError: array size mismatch` | Inconsistent data lengths | Check for NaN, filter consistently  |
+| `RuntimeWarning: divide by zero`  | Zero in denominator       | Add safeguards, check data          |
+| `MemoryError`                     | Dataset too large         | Process in chunks, reduce precision |
+| `ImportError`                     | Missing package           | Install required packages           |
+| `TypeError: unsupported operand`  | Wrong data type           | Convert to numeric, check types     |
+| `IndexError: index out of range`  | Array access error        | Check array lengths, use bounds     |
 
 ### Debug Mode
 
@@ -476,6 +517,7 @@ logger.debug("Starting analysis...")
 ### Reporting Issues
 
 Include:
+
 1. **Error message**: Full traceback
 2. **Environment**: Python version, OS, package versions
 3. **Data sample**: Minimal example that reproduces issue
@@ -486,9 +528,11 @@ Include:
 ### Contact
 
 For project-specific questions:
+
 - Repository: github.com/cytronicoder/spongebobs-corpse
 - Issues: Create GitHub issue with details above
 
 For general Python/data analysis questions:
+
 - Stack Overflow: Tag with `python`, `pandas`, `scipy`
 - Documentation: numpy.org, pandas.pydata.org, scipy.org
