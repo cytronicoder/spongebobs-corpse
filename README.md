@@ -7,6 +7,19 @@ We investigated how viscoelastic pads of varying thickness attenuate impacts. We
 > [!NOTE]
 > This repository contains the source code and data for my IBDP Physics HL Internal Assessment. It is not intended for public use, and should be used solely for educational purposes. However, you are free to explore the code and data for learning on your own.
 
+#### Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+- **[Getting Started](docs/getting-started.md)** - Installation and usage instructions
+- **[Data Format](docs/data-format.md)** - Input data structure and requirements
+- **[Scripts](docs/scripts.md)** - Detailed script documentation
+- **[API Reference](docs/api-reference.md)** - Function and class documentation
+- **[Analysis Methods](docs/analysis-methods.md)** - Mathematical and statistical methods
+- **[Output Files](docs/output-files.md)** - Description of generated outputs
+- **[Examples](docs/examples.md)** - Usage examples and workflows
+- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+
 #### Installation
 
 1. Clone the repository:
