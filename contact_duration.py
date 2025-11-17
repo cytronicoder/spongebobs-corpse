@@ -143,50 +143,58 @@ def calculate_contact_duration_threshold(
 
 
 def calculate_contact_duration_velocity(
-    time: np.ndarray, velocity: np.ndarray, smooth: bool = True
+    time: np.ndarray,
+    velocity: np.ndarray,
+    smooth: bool = True,
+    velocity_threshold: float = 0.1,
 ) -> Dict[str, float]:
     """
-    Calculate contact duration using velocity reversal method.
+    Calculate contact duration using velocity threshold method.
 
-    Contact duration is the time during which velocity is negative
-    (cart decelerating/reversing during impact).
+    Contact begins when velocity drops below threshold, reaches minimum
+    (maximum compression), and ends when |velocity| exceeds threshold again.
+    This method handles sparse velocity data with NaN values.
 
     Args:
         time: Time array (aligned)
         velocity: Velocity array
         smooth: Whether to apply smoothing
+        velocity_threshold: Velocity threshold for contact detection (m/s)
 
     Returns:
         Dictionary with contact metrics
     """
     mask = np.isfinite(time) & np.isfinite(velocity)
-    if not mask.any():
+    if not mask.any() or mask.sum() < 10:
         return {
             "duration": np.nan,
             "start_time": np.nan,
             "end_time": np.nan,
             "min_velocity": np.nan,
+            "velocity_threshold": velocity_threshold,
             "method": "velocity",
         }
 
     t_valid = time[mask]
     v_valid = velocity[mask]
 
-    if smooth:
+    if smooth and len(v_valid) >= 11:
         v_valid = smooth_signal(v_valid)
 
     min_vel_idx = np.argmin(v_valid)
     min_vel = v_valid[min_vel_idx]
 
+    # Find contact start: last point before minimum where velocity > threshold
     start_idx = 0
     for i in range(min_vel_idx, -1, -1):
-        if v_valid[i] >= 0:
-            start_idx = i + 1 if i + 1 < len(v_valid) else i
+        if v_valid[i] > velocity_threshold:
+            start_idx = i
             break
 
+    # Find contact end: first point after minimum where |velocity| > threshold
     end_idx = len(v_valid) - 1
     for i in range(min_vel_idx, len(v_valid)):
-        if v_valid[i] >= 0:
+        if abs(v_valid[i]) > velocity_threshold:
             end_idx = i
             break
 
@@ -199,7 +207,92 @@ def calculate_contact_duration_velocity(
         "start_time": start_time,
         "end_time": end_time,
         "min_velocity": min_vel,
+        "velocity_threshold": velocity_threshold,
         "method": "velocity",
+    }
+
+
+def calculate_contact_duration_energy(
+    time: np.ndarray,
+    velocity: np.ndarray,
+    mass: float = 0.5,
+    recovery_fraction: float = 0.5,
+    smooth: bool = True,
+) -> Dict[str, float]:
+    """
+    Calculate contact duration using kinetic energy tracking method.
+
+    Uses E_k(t) = 0.5 * m * v²(t). Finds global maximum energy (initial velocity),
+    then minimum energy after that point (compression). Contact duration is the
+    interval between energy drop and recovery to specified fraction of initial energy.
+
+    Args:
+        time: Time array (aligned)
+        velocity: Velocity array
+        mass: Cart mass (kg)
+        recovery_fraction: Fraction of initial energy for contact boundaries
+        smooth: Whether to apply smoothing
+
+    Returns:
+        Dictionary with contact metrics
+    """
+    mask = np.isfinite(time) & np.isfinite(velocity)
+    if not mask.any() or mask.sum() < 10:
+        return {
+            "duration": np.nan,
+            "start_time": np.nan,
+            "end_time": np.nan,
+            "initial_energy": np.nan,
+            "min_energy": np.nan,
+            "recovery_threshold": np.nan,
+            "method": "energy",
+        }
+
+    t_valid = time[mask]
+    v_valid = velocity[mask]
+
+    if smooth and len(v_valid) >= 11:
+        v_valid = smooth_signal(v_valid)
+
+    # Calculate kinetic energy
+    energy = 0.5 * mass * v_valid**2
+
+    # Find the global maximum energy (initial velocity before impact)
+    max_energy_idx = np.argmax(energy)
+    initial_energy = energy[max_energy_idx]
+
+    # Find energy minimum AFTER the maximum (maximum compression during impact)
+    min_energy_idx = max_energy_idx + np.argmin(energy[max_energy_idx:])
+    min_energy = energy[min_energy_idx]
+
+    recovery_threshold = recovery_fraction * initial_energy
+
+    # Find contact start: last point before minimum where energy > threshold
+    start_idx = max_energy_idx
+    for i in range(min_energy_idx, max_energy_idx, -1):
+        if energy[i] >= recovery_threshold:
+            start_idx = i
+            break
+
+    # Find contact end: first point after minimum where energy > threshold
+    end_idx = len(energy) - 1
+    for i in range(min_energy_idx, len(energy)):
+        if energy[i] >= recovery_threshold:
+            end_idx = i
+            break
+
+    start_time = t_valid[start_idx]
+    end_time = t_valid[end_idx]
+    duration = end_time - start_time
+
+    return {
+        "duration": duration,
+        "start_time": start_time,
+        "end_time": end_time,
+        "initial_energy": initial_energy,
+        "min_energy": min_energy,
+        "recovery_threshold": recovery_threshold,
+        "method": "energy",
     }
 
 
@@ -208,15 +301,21 @@ def analyze_contact_duration_for_file(
     threshold_fraction: float = 0.05,
     smooth: bool = True,
     method: str = "threshold",
+    velocity_threshold: float = 0.1,
+    cart_mass: float = 0.5,
+    energy_recovery_fraction: float = 0.5,
 ) -> pd.DataFrame:
     """
     Analyze contact duration for all runs in an aligned CSV file.
 
     Args:
         aligned_csv_path: Path to aligned CSV file
-        threshold_fraction: Threshold for contact detection
+        threshold_fraction: Threshold for force-based contact detection
         smooth: Whether to smooth signals
-        method: Detection method ('threshold', 'velocity', or 'both')
+        method: Detection method ('threshold', 'velocity', 'energy', or 'all')
+        velocity_threshold: Velocity threshold for velocity-based method (m/s)
+        cart_mass: Cart mass for energy-based method (kg)
+        energy_recovery_fraction: Energy recovery fraction for energy-based method
 
     Returns:
         DataFrame with contact duration metrics for each run
@@ -233,7 +332,7 @@ def analyze_contact_duration_for_file(
             time = df[(run, "Time (s) [aligned]")].values
             force = df[(run, "Force (N)")].values
 
-            if method in ["threshold", "both"]:
+            if method in ["threshold", "all"]:
                 metrics_threshold = calculate_contact_duration_threshold(
                     time, force, threshold_fraction, smooth
                 )
@@ -251,11 +350,11 @@ def analyze_contact_duration_for_file(
                 }
                 results.append(result)
 
-            if method in ["velocity", "both"]:
+            if method in ["velocity", "all"]:
                 if (run, "Velocity (m/s)") in df.columns:
                     velocity = df[(run, "Velocity (m/s)")].values
                     metrics_velocity = calculate_contact_duration_velocity(
-                        time, velocity, smooth
+                        time, velocity, smooth, velocity_threshold
                     )
 
                     result = {
@@ -266,7 +365,31 @@ def analyze_contact_duration_for_file(
                         "start_time_s": metrics_velocity["start_time"],
                         "end_time_s": metrics_velocity["end_time"],
                         "min_velocity_m_s": metrics_velocity["min_velocity"],
+                        "velocity_threshold_m_s": metrics_velocity[
+                            "velocity_threshold"
+                        ],
                         "method": "velocity",
+                    }
+                    results.append(result)
+
+            if method in ["energy", "all"]:
+                if (run, "Velocity (m/s)") in df.columns:
+                    velocity = df[(run, "Velocity (m/s)")].values
+                    metrics_energy = calculate_contact_duration_energy(
+                        time, velocity, cart_mass, energy_recovery_fraction, smooth
+                    )
+
+                    result = {
+                        "file": aligned_csv_path.stem,
+                        "thickness_mm": thickness,
+                        "run": run,
+                        "duration_s": metrics_energy["duration"],
+                        "start_time_s": metrics_energy["start_time"],
+                        "end_time_s": metrics_energy["end_time"],
+                        "initial_energy_J": metrics_energy["initial_energy"],
+                        "min_energy_J": metrics_energy["min_energy"],
+                        "recovery_threshold_J": metrics_energy["recovery_threshold"],
+                        "method": "energy",
                     }
                     results.append(result)
 
@@ -657,8 +780,26 @@ def main():
         "--method",
         type=str,
         default="threshold",
-        choices=["threshold", "velocity", "both"],
+        choices=["threshold", "velocity", "energy", "all"],
         help="Contact detection method (default: threshold)",
+    )
+    parser.add_argument(
+        "--velocity_threshold",
+        type=float,
+        default=0.1,
+        help="Velocity threshold for velocity-based method in m/s (default: 0.1)",
+    )
+    parser.add_argument(
+        "--cart_mass",
+        type=float,
+        default=0.5,
+        help="Cart mass for energy-based method in kg (default: 0.5)",
+    )
+    parser.add_argument(
+        "--energy_recovery",
+        type=float,
+        default=0.5,
+        help="Energy recovery fraction for energy-based method (default: 0.5)",
     )
     parser.add_argument(
         "--no_smooth", action="store_true", help="Disable signal smoothing"
@@ -694,6 +835,9 @@ def main():
                 threshold_fraction=args.threshold,
                 smooth=not args.no_smooth,
                 method=args.method,
+                velocity_threshold=args.velocity_threshold,
+                cart_mass=args.cart_mass,
+                energy_recovery_fraction=args.energy_recovery,
             )
             all_results.append(results)
         except (OSError, ValueError, KeyError) as e:
@@ -718,11 +862,14 @@ def main():
     aggregated_path = output_dir / "contact_duration_summary.csv"
     aggregated.to_csv(aggregated_path, index=False)
 
-    methods_to_analyze = (
-        ["threshold"]
-        if args.method == "threshold"
-        else ["threshold", "velocity"] if args.method == "both" else ["velocity"]
-    )
+    if args.method == "threshold":
+        methods_to_analyze = ["threshold"]
+    elif args.method == "velocity":
+        methods_to_analyze = ["velocity"]
+    elif args.method == "energy":
+        methods_to_analyze = ["energy"]
+    else:  # "all"
+        methods_to_analyze = ["threshold", "velocity", "energy"]
 
     for method in methods_to_analyze:
         plot_path = output_dir / f"contact_duration_vs_thickness_{method}.png"

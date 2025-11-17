@@ -287,69 +287,99 @@ print(f"Peak force: {contact_info['peak_force']:.2f} N")
 def calculate_contact_duration_velocity(
     time: np.ndarray,
     velocity: np.ndarray,
-    smooth: bool = True
+    smooth: bool = True,
+    velocity_threshold: float = 0.1
 ) -> Dict[str, float]
 ```
 
-Calculate contact duration using velocity reversal method.
+Calculate contact duration using velocity threshold method.
 
 **Parameters:**
 
 - `time` (np.ndarray): Time array in seconds
 - `velocity` (np.ndarray): Velocity array in m/s
 - `smooth` (bool, optional): Apply smoothing. Default: True
+- `velocity_threshold` (float, optional): Velocity threshold for contact detection in m/s. Default: 0.1
 
 **Returns:**
 
-- `dict`: Dictionary with contact metrics (similar to threshold method)
-  - Additional key: `method` = "velocity"
+- `dict`: Dictionary with contact metrics:
+  - `duration` (float): Contact duration in seconds
+  - `start_time` (float): Contact start time
+  - `end_time` (float): Contact end time
+  - `min_velocity` (float): Minimum velocity (maximum compression)
+  - `velocity_threshold` (float): Threshold value used
+  - `method` (str): "velocity"
 
 **Algorithm:**
 
-1. Optionally smooth velocity signal
-2. Find zero-crossings (velocity direction reversals)
-3. Identify contact period between deceleration and rebound
-4. Calculate duration from reversal points
+1. Filter out NaN values from sparse velocity data
+2. Validate minimum 10 valid measurements
+3. Optionally smooth velocity signal (Savitzky-Golay)
+4. Find minimum velocity (maximum compression point)
+5. Search backward for contact start (v > threshold)
+6. Search forward for contact end (|v| > threshold)
+7. Calculate duration from threshold crossings
 
 **Notes:**
 
-- Requires velocity data in aligned DataFrame
-- Less robust to noise than threshold method
-- Useful for validation and comparison
+- Handles sparse velocity data with NaN values robustly
+- Requires at least 10 valid velocity measurements
+- Threshold-based detection more stable than zero-crossing
+- Useful for validation and comparison with force method
 
 #### calculate_contact_duration_energy
 
 ```python
 def calculate_contact_duration_energy(
     time: np.ndarray,
-    energy: np.ndarray
+    velocity: np.ndarray,
+    mass: float = 0.5,
+    recovery_fraction: float = 0.5,
+    smooth: bool = True
 ) -> Dict[str, float]
 ```
 
-Calculate contact duration using energy-based method.
+Calculate contact duration using kinetic energy tracking method.
 
 **Parameters:**
 
 - `time` (np.ndarray): Time array in seconds
-- `energy` (np.ndarray): Kinetic energy array in Joules
+- `velocity` (np.ndarray): Velocity array in m/s
+- `mass` (float, optional): Cart mass in kg. Default: 0.5
+- `recovery_fraction` (float, optional): Fraction of initial energy for contact boundaries. Default: 0.5
+- `smooth` (bool, optional): Apply smoothing. Default: True
 
 **Returns:**
 
-- `dict`: Dictionary with contact metrics
-  - Additional key: `method` = "energy"
+- `dict`: Dictionary with contact metrics:
+  - `duration` (float): Contact duration in seconds
+  - `start_time` (float): Contact start time
+  - `end_time` (float): Contact end time
+  - `initial_energy` (float): Maximum kinetic energy before impact (J)
+  - `min_energy` (float): Minimum kinetic energy during compression (J)
+  - `recovery_threshold` (float): Energy threshold used (J)
+  - `method` (str): "energy"
 
 **Algorithm:**
 
-1. Identify maximum energy (before impact)
-2. Find energy minimum (maximum compression)
-3. Determine contact boundaries from energy profile
-4. Calculate duration
+1. Filter out NaN values from velocity data
+2. Validate minimum 10 valid measurements
+3. Calculate kinetic energy: E_k = 0.5 * m * v²
+4. Find global maximum energy (initial velocity before impact)
+5. Find minimum energy AFTER maximum (compression during impact)
+6. Calculate recovery threshold (fraction of initial energy)
+7. Search backward from minimum for contact start (E < threshold)
+8. Search forward from minimum for contact end (E ≥ threshold)
+9. Calculate duration
 
 **Notes:**
 
-- Requires energy data in aligned DataFrame
-- Assumes energy is primarily kinetic
-- May be affected by energy dissipation
+- Requires velocity data and cart mass parameter
+- Finds correct impact event (not spurious low-energy regions)
+- Global maximum search ensures proper event identification
+- Recovery fraction affects contact boundary detection
+- Requires at least 10 valid velocity measurements
 
 #### save_annotated_profile
 

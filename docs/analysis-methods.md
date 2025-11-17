@@ -59,53 +59,120 @@ contact_info = calculate_contact_duration_threshold(
 - May miss very brief contacts
 - Sensitive to baseline drift
 
-#### Method 2: Velocity-Based
+#### Method 2: Velocity-Based (Threshold Detection)
 
-**Principle:** Contact occurs between initial impact (velocity reversal) and rebound (second velocity reversal).
+**Principle:** Contact occurs when velocity drops below a threshold, reaches minimum compression, then recovers. This method handles sparse velocity data with NaN values.
 
-**Algorithm:**
-
-1. Velocity analysis:
-
-   - Smooth velocity signal
-   - Find zero-crossings: $v(t) = 0$
-
-2. Impact detection:
-
-   - First zero-crossing: deceleration to zero
-   - Time: $t_{\text{impact}}$
-
-3. Rebound detection:
-
-   - Second zero-crossing: acceleration from zero
-   - Time: $t_{\text{rebound}}$
-
-4. Duration:
-   $\Delta t = t_{\text{rebound}} - t_{\text{impact}}$
-
-#### Method 3: Energy-Based
-
-**Principle:** Contact period corresponds to kinetic energy transformation (conversion to elastic/heat energy and back).
+```python
+contact_info = calculate_contact_duration_velocity(
+    time=time_array,
+    velocity=velocity_array,
+    velocity_threshold=0.1,  # 0.1 m/s threshold
+    smooth=True
+)
+```
 
 **Algorithm:**
 
-1. Track kinetic energy:
+1. Data validation:
+   - Filter out NaN values from sparse velocity data
+   - Require minimum 10 valid measurements
+
+2. Signal smoothing (optional):
+   - Apply Savitzky-Golay filter if sufficient data points (≥11)
+   - Window length: 11 points
+   - Polynomial order: 3
+
+3. Find minimum velocity:
+   - $v_{\text{min}} = \min(v(t))$
+   - Corresponds to maximum compression point
+
+4. Contact start:
+   - Search backward from $v_{\text{min}}$
+   - Start when $v(t) > v_{\text{threshold}}$
+   - Time point: $t_{\text{start}}$
+
+5. Contact end:
+   - Search forward from $v_{\text{min}}$
+   - End when $|v(t)| > v_{\text{threshold}}$
+   - Time point: $t_{\text{end}}$
+
+6. Duration:
+   $\Delta t = t_{\text{end}} - t_{\text{start}}$
+
+**Advantages:**
+
+- Handles sparse velocity data robustly
+- Less sensitive to noise than zero-crossing
+- Provides validation against force method
+
+**Limitations:**
+
+- Requires velocity measurements (derived from position)
+- Threshold selection affects results
+- May have gaps in data due to sensor limitations
+
+#### Method 3: Energy-Based (Kinetic Energy Tracking)
+
+**Principle:** Contact period corresponds to kinetic energy transformation during impact. Uses global maximum energy to identify impact event correctly.
+
+```python
+contact_info = calculate_contact_duration_energy(
+    time=time_array,
+    velocity=velocity_array,
+    mass=0.5,  # cart mass in kg
+    recovery_fraction=0.5,  # 50% energy recovery threshold
+    smooth=True
+)
+```
+
+**Algorithm:**
+
+1. Data validation:
+   - Filter out NaN values
+   - Require minimum 10 valid measurements
+
+2. Calculate kinetic energy:
    $E_k(t) = \tfrac{1}{2} m v^2(t)$
 
-2. Maximum before impact: $E_0$
+3. Find global maximum energy:
+   - $E_{\text{initial}} = \max(E_k(t))$
+   - Represents velocity before impact
+   - Index: $t_{\text{max}}$
 
-3. Energy minimum:
+4. Find minimum energy after maximum:
+   - $E_{\text{min}} = \min\{E_k(t) : t > t_{\text{max}}\}$
+   - Maximum compression during impact
+   - Time: $t_{\text{min}}$
 
-   - Lowest kinetic energy
-   - Time: $t_{\min}$
+5. Recovery threshold:
+   - $E_{\text{threshold}} = \alpha \cdot E_{\text{initial}}$
+   - Default: $\alpha = 0.5$ (50% recovery)
 
-4. Energy recovery:
+6. Contact start:
+   - Search backward from $E_{\text{min}}$ to $E_{\text{max}}$
+   - Start when $E_k(t) < E_{\text{threshold}}$
+   - Time: $t_{\text{start}}$
 
-   - Return to threshold fraction of $E_0$
-   - Time: $t_{\text{recovery}}$
+7. Contact end:
+   - Search forward from $E_{\text{min}}$
+   - End when $E_k(t) \geq E_{\text{threshold}}$
+   - Time: $t_{\text{end}}$
 
-5. Duration:
-   $\Delta t = t_{\text{recovery}} - t_{\text{impact}}$
+8. Duration:
+   $\Delta t = t_{\text{end}} - t_{\text{start}}$
+
+**Advantages:**
+
+- Physical interpretation (energy conversion)
+- Robust to velocity sign changes
+- Finds correct impact event (not spurious low-energy regions)
+
+**Limitations:**
+
+- Requires mass parameter
+- Depends on velocity measurements
+- Recovery fraction selection affects results
 
 ### Linear Regression
 

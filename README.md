@@ -38,13 +38,60 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 #### Usage
 
 1. Place your CSV data files in the `data/` directory.
-2. Run the analysis:
+
+2. Run the offset alignment:
+
+   ```bash
+   python offset.py
+   ```
+
+3. Calculate contact durations using multiple methods:
+
+   ```bash
+   # Use force-threshold method (default)
+   python contact_duration.py --method threshold --threshold 0.05
+
+   # Compare all three methods
+   python contact_duration.py --method all
+
+   # Use velocity-based method with custom threshold
+   python contact_duration.py --method velocity --velocity_threshold 0.1
+
+   # Use energy-based method with custom mass
+   python contact_duration.py --method energy --cart_mass 0.5
+   ```
+
+4. Generate method comparison plots:
+
+   ```bash
+   python compare_methods.py "outputs/dr lee go brr - 40mm/dr lee go brr - 40mm_aligned.csv" \
+       --run "Run 2" --threshold 0.05 --mass 0.5 --output "method_comparison.png"
+   ```
+
+5. Compare threshold sensitivity:
+
+   ```bash
+   python compare_thresholds.py "outputs/dr lee go brr - 40mm/dr lee go brr - 40mm_aligned.csv" \
+       --run "Run 2" --thresholds 0.01 0.03 0.05 0.10 --output "threshold_comparison.png"
+   ```
+
+6. Perform statistical analysis:
 
    ```bash
    python analysis.py
    ```
 
-3. View results in the `outputs/` directory, including plots and statistical reports.
+7. View results in the `outputs/` directory, including plots and statistical reports.
+
+#### Analysis Methods
+
+The project implements three contact duration detection methods:
+
+- **Force-Threshold (Primary):** Detects contact when |force| exceeds a percentage of peak force
+- **Velocity-Based:** Uses velocity threshold detection to identify contact boundaries (handles sparse data)
+- **Energy-Based:** Tracks kinetic energy transformation during impact (finds global maximum first)
+
+See [Analysis Methods](docs/analysis-methods.md) for detailed mathematical descriptions.
 
 #### Data Format
 
