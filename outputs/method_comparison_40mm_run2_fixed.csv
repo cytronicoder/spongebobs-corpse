@@ -1,4 +1,0 @@
-duration,start_time,end_time,peak_force,threshold,method,min_velocity,velocity_threshold,initial_energy,min_energy,recovery_threshold
-0.27,3.81,4.08,5.368519125024093,0.2684259562512047,Force-Threshold,,,,,
-0.23999999999999977,3.89,4.13,,,Velocity-Based,-0.7857235188422148,0.1,,,
-0.23999999999999977,3.81,4.05,,,Energy-Based,,,0.19625320298653348,7.339023924487978e-05,0.09812660149326674
