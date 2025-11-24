@@ -1,0 +1,103 @@
+================================================================================
+CONTACT DURATION ANALYSIS - STATISTICAL REPORT
+================================================================================
+
+Analysis Date: 2025-11-24 22:50:21
+Total Measurements: 35
+Thickness Conditions: 7
+Runs per Condition: 5
+
+--------------------------------------------------------------------------------
+SUMMARY STATISTICS BY PAD THICKNESS
+--------------------------------------------------------------------------------
+
+ Thickness (mm)  Mean Duration (s)  Std Dev (s)  Min (s)  Max (s)  N Runs  CV (%)  Peak Force (N)
+              4              0.256       0.0055     0.25     0.26       5    2.14            6.54
+             16              0.264       0.0055     0.26     0.27       5    2.07            6.12
+             28              0.268       0.0045     0.26     0.27       5    1.67            5.63
+             40              0.276       0.0055     0.27     0.28       5    1.98            5.28
+             52              0.280       0.0100     0.27     0.29       5    3.57            4.67
+             64              0.286       0.0114     0.27     0.30       5    3.99            4.31
+             76              0.296       0.0114     0.28     0.31       5    3.85            3.82
+
+--------------------------------------------------------------------------------
+STATISTICAL TESTS
+--------------------------------------------------------------------------------
+
+Linear Regression Analysis:
+  Equation: Duration = 0.000524 × Thickness + 0.254190
+  R² = 0.9888
+  p-value = 0.0000
+  Standard Error = 0.000025
+
+  ✓ SIGNIFICANT: Statistically significant relationship (p < 0.05)
+
+One-Way ANOVA:
+  F-statistic = 13.8865
+  p-value = 0.0000
+  ✓ SIGNIFICANT: At least one thickness differs significantly (p < 0.05)
+
+--------------------------------------------------------------------------------
+DETAILED MEASUREMENTS
+--------------------------------------------------------------------------------
+
+
+Thickness: 4 mm
+----------------------------------------
+  Run 1: 0.260 s (Peak: 5.87 N, Start: 0.00 s, End: 0.26 s)
+  Run 2: 0.250 s (Peak: 7.35 N, Start: 0.00 s, End: 0.25 s)
+  Run 3: 0.260 s (Peak: 6.33 N, Start: 0.00 s, End: 0.26 s)
+  Run 4: 0.260 s (Peak: 6.18 N, Start: 0.00 s, End: 0.26 s)
+  Run 5: 0.250 s (Peak: 6.99 N, Start: 0.00 s, End: 0.25 s)
+
+Thickness: 16 mm
+----------------------------------------
+  Run 1: 0.260 s (Peak: 6.32 N, Start: 0.00 s, End: 0.26 s)
+  Run 2: 0.260 s (Peak: 5.98 N, Start: 0.00 s, End: 0.26 s)
+  Run 3: 0.270 s (Peak: 6.10 N, Start: 0.00 s, End: 0.27 s)
+  Run 4: 0.260 s (Peak: 6.21 N, Start: 0.00 s, End: 0.26 s)
+  Run 5: 0.270 s (Peak: 5.97 N, Start: 0.00 s, End: 0.27 s)
+
+Thickness: 28 mm
+----------------------------------------
+  Run 1: 0.270 s (Peak: 5.80 N, Start: 0.00 s, End: 0.27 s)
+  Run 2: 0.270 s (Peak: 5.59 N, Start: 0.00 s, End: 0.27 s)
+  Run 3: 0.270 s (Peak: 5.62 N, Start: 0.00 s, End: 0.27 s)
+  Run 4: 0.260 s (Peak: 5.71 N, Start: 0.00 s, End: 0.26 s)
+  Run 5: 0.270 s (Peak: 5.44 N, Start: 0.00 s, End: 0.27 s)
+
+Thickness: 40 mm
+----------------------------------------
+  Run 1: 0.280 s (Peak: 5.40 N, Start: 0.00 s, End: 0.28 s)
+  Run 2: 0.270 s (Peak: 5.32 N, Start: 0.00 s, End: 0.27 s)
+  Run 3: 0.270 s (Peak: 5.20 N, Start: 0.00 s, End: 0.27 s)
+  Run 4: 0.280 s (Peak: 5.20 N, Start: 0.00 s, End: 0.28 s)
+  Run 5: 0.280 s (Peak: 5.30 N, Start: 0.00 s, End: 0.28 s)
+
+Thickness: 52 mm
+----------------------------------------
+  Run 1: 0.280 s (Peak: 4.84 N, Start: 0.00 s, End: 0.28 s)
+  Run 2: 0.290 s (Peak: 4.90 N, Start: 0.00 s, End: 0.29 s)
+  Run 3: 0.270 s (Peak: 4.43 N, Start: 0.00 s, End: 0.27 s)
+  Run 4: 0.270 s (Peak: 4.44 N, Start: 0.00 s, End: 0.27 s)
+  Run 5: 0.290 s (Peak: 4.75 N, Start: 0.00 s, End: 0.29 s)
+
+Thickness: 64 mm
+----------------------------------------
+  Run 1: 0.300 s (Peak: 4.55 N, Start: 0.00 s, End: 0.30 s)
+  Run 2: 0.270 s (Peak: 4.15 N, Start: 0.00 s, End: 0.27 s)
+  Run 3: 0.290 s (Peak: 4.30 N, Start: 0.00 s, End: 0.29 s)
+  Run 4: 0.290 s (Peak: 4.45 N, Start: 0.00 s, End: 0.29 s)
+  Run 5: 0.280 s (Peak: 4.10 N, Start: 0.00 s, End: 0.28 s)
+
+Thickness: 76 mm
+----------------------------------------
+  Run 1: 0.310 s (Peak: 4.05 N, Start: 0.00 s, End: 0.31 s)
+  Run 2: 0.280 s (Peak: 3.65 N, Start: 0.00 s, End: 0.28 s)
+  Run 3: 0.300 s (Peak: 3.85 N, Start: 0.00 s, End: 0.30 s)
+  Run 4: 0.300 s (Peak: 3.95 N, Start: 0.00 s, End: 0.30 s)
+  Run 5: 0.290 s (Peak: 3.60 N, Start: 0.00 s, End: 0.29 s)
+
+================================================================================
+END OF REPORT
+================================================================================
