@@ -12,12 +12,8 @@ We investigated how viscoelastic pads of varying thickness attenuate impacts. We
 Comprehensive documentation is available in the [`docs/`](docs/) directory:
 
 - **[Getting Started](docs/getting-started.md)** - Installation and usage instructions
-- **[Data Format](docs/data-format.md)** - Input data structure and requirements
-- **[Scripts](docs/scripts.md)** - Detailed script documentation
 - **[API Reference](docs/api-reference.md)** - Function and class documentation
 - **[Analysis Methods](docs/analysis-methods.md)** - Mathematical and statistical methods
-- **[Output Files](docs/output-files.md)** - Description of generated outputs
-- **[Examples](docs/examples.md)** - Usage examples and workflows
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
 
 #### Installation
@@ -82,6 +78,10 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
    ```
 
 7. View results in the `outputs/` directory, including plots and statistical reports.
+
+#### IA Batch Analysis
+
+For the purposes of my IA, I have implemented a script that automatically processes all curated data files to generates the plots and analysis reports. This script is located in `batch/batch_analysis.py`.
 
 #### Analysis Methods
 
