@@ -326,8 +326,10 @@ def plot_method_comparison(
     energy = np.zeros_like(velocity)
     energy[mask] = 0.5 * mass * velocity[mask] ** 2
 
-    force_result = results_df[results_df["method"] == "Force-Threshold"].iloc[0]
-    velocity_result = results_df[results_df["method"] == "Velocity-Based"].iloc[0]
+    force_result = results_df[results_df["method"]
+                              == "Force-Threshold"].iloc[0]
+    velocity_result = results_df[results_df["method"]
+                                 == "Velocity-Based"].iloc[0]
     energy_result = results_df[results_df["method"] == "Energy-Based"].iloc[0]
 
     ax1 = axes[0]
@@ -379,7 +381,8 @@ def plot_method_comparison(
 
     ax1.set_xlabel("Time (s)", fontsize=12)
     ax1.set_ylabel("Force (N)", fontsize=12)
-    ax1.set_title("Method A: Force-Threshold Detection", fontsize=14, fontweight="bold")
+    ax1.set_title("Method A: Force-Threshold Detection",
+                  fontsize=14, fontweight="bold")
     ax1.legend(loc="upper right", fontsize=10)
     ax1.grid(True, alpha=0.3)
 
@@ -395,7 +398,8 @@ def plot_method_comparison(
         marker="o",
         markersize=3,
     )
-    ax2.axhline(y=0, color="r", linestyle="--", linewidth=1.5, label="Zero velocity")
+    ax2.axhline(y=0, color="r", linestyle="--",
+                linewidth=1.5, label="Zero velocity")
 
     if (
         not np.isnan(velocity_result["duration"])
@@ -439,7 +443,8 @@ def plot_method_comparison(
             label="Contact end",
         )
 
-        mid_time = (velocity_result["start_time"] + velocity_result["end_time"]) / 2
+        mid_time = (velocity_result["start_time"] +
+                    velocity_result["end_time"]) / 2
         v_range = np.nanmax(velocity[v_mask]) - np.nanmin(velocity[v_mask])
         y_pos = np.nanmin(velocity[v_mask]) + v_range * 0.3
         ax2.annotate(
@@ -461,7 +466,8 @@ def plot_method_comparison(
     ax2.grid(True, alpha=0.3)
 
     ax3 = axes[2]
-    ax3.plot(time, energy, "b-", linewidth=1.5, label="Kinetic energy", alpha=0.7)
+    ax3.plot(time, energy, "b-", linewidth=1.5,
+             label="Kinetic energy", alpha=0.7)
 
     if not np.isnan(energy_result["duration"]):
         ax3.axhline(
@@ -495,7 +501,8 @@ def plot_method_comparison(
             label="Energy recovery",
         )
 
-        mid_time = (energy_result["start_time"] + energy_result["end_time"]) / 2
+        mid_time = (energy_result["start_time"] +
+                    energy_result["end_time"]) / 2
         ax3.annotate(
             f"τ = {energy_result['duration']*1000:.2f} ms",
             xy=(mid_time, energy_result["recovery_threshold"] * 0.7),
@@ -572,7 +579,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Compare contact duration detection methods"
     )
-    parser.add_argument("aligned_csv", type=str, help="Path to aligned CSV file")
+    parser.add_argument("aligned_csv", type=str,
+                        help="Path to aligned CSV file")
     parser.add_argument(
         "--run", type=str, default="Run 1", help="Run identifier (default: Run 1)"
     )

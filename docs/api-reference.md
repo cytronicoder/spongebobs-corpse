@@ -365,7 +365,7 @@ Calculate contact duration using kinetic energy tracking method.
 
 1. Filter out NaN values from velocity data
 2. Validate minimum 10 valid measurements
-3. Calculate kinetic energy: E_k = 0.5 * m * v²
+3. Calculate kinetic energy: $E_k = 0.5 * m * v^2$
 4. Find global maximum energy (initial velocity before impact)
 5. Find minimum energy AFTER maximum (compression during impact)
 6. Calculate recovery threshold (fraction of initial energy)

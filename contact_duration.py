@@ -394,7 +394,8 @@ def analyze_contact_duration_for_file(
                     results.append(result)
 
         except (KeyError, ValueError) as e:
-            print(f"Warning: Failed to process {run} in {aligned_csv_path.name}: {e}")
+            print(
+                f"Warning: Failed to process {run} in {aligned_csv_path.name}: {e}")
             continue
 
     return pd.DataFrame(results)
@@ -426,7 +427,8 @@ def aggregate_by_thickness(results_df: pd.DataFrame) -> pd.DataFrame:
     grouped = grouped.reset_index()
 
     if "duration_s_mean" in grouped.columns and "duration_s_std" in grouped.columns:
-        grouped["duration_cv"] = grouped["duration_s_std"] / grouped["duration_s_mean"]
+        grouped["duration_cv"] = grouped["duration_s_std"] / \
+            grouped["duration_s_mean"]
 
     if "duration_s_min" in grouped.columns and "duration_s_max" in grouped.columns:
         grouped["duration_s_uncertainty"] = (
@@ -633,7 +635,8 @@ def plot_duration_vs_thickness(
 
     ax.set_xlabel("Pad Thickness ($h$, mm)", fontsize=16, fontweight="bold")
     ax.tick_params(axis="x", labelsize=16)
-    ax.set_ylabel("Contact Duration ($\\tau$, s)", fontsize=16, fontweight="bold")
+    ax.set_ylabel("Contact Duration ($\\tau$, s)",
+                  fontsize=16, fontweight="bold")
     ax.tick_params(axis="y", labelsize=16)
     ax.set_title(
         "Contact Duration ($\\tau$) vs. Pad Thickness ($h$)",
@@ -668,7 +671,8 @@ def plot_annotated_force_profiles(
         & (contact_results["method"] == method)
     ]
 
-    cb_colors = ["#0173B2", "#DE8F05", "#029E73", "#CC78BC", "#CA9161", "#949494"]
+    cb_colors = ["#0173B2", "#DE8F05", "#029E73",
+                 "#CC78BC", "#CA9161", "#949494"]
 
     _, ax = plt.subplots(figsize=(14, 7))
 
@@ -743,7 +747,8 @@ def plot_annotated_force_profiles(
     )
     ax.axhline(0, color="black", linewidth=1, linestyle="-", alpha=0.4)
     ax.grid(True, alpha=0.3, linestyle="--", linewidth=0.8)
-    ax.legend(loc="best", fontsize=14, framealpha=0.95, edgecolor="black", ncol=2)
+    ax.legend(loc="best", fontsize=14, framealpha=0.95,
+              edgecolor="black", ncol=2)
     plt.tight_layout(pad=1.5)
 
     output_path = output_dir / f"{aligned_csv_path.stem}_contact_annotated.png"
@@ -890,7 +895,8 @@ def main():
                     method="threshold",
                 )
             except (KeyError, ValueError, IndexError) as e:
-                print(f"Warning: Could not create plot for {aligned_csv.name}: {e}")
+                print(
+                    f"Warning: Could not create plot for {aligned_csv.name}: {e}")
 
 
 if __name__ == "__main__":

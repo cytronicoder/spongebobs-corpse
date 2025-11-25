@@ -2,6 +2,7 @@
 Analyze contact duration and peak force data from batch processing.
 """
 
+import utils
 import argparse
 from pathlib import Path
 import pandas as pd
@@ -13,7 +14,6 @@ import os
 
 # Add parent directory to path to import utils
 sys.path.append(str(Path(__file__).resolve().parent.parent))
-import utils
 
 
 def plot_duration_subplot(ax, detailed_df, summary_df, colors):
@@ -166,7 +166,8 @@ def plot_duration_subplot(ax, detailed_df, summary_df, colors):
     )
 
     ax.set_xlabel("Pad Thickness ($h$, mm)", fontsize=16, fontweight="bold")
-    ax.set_ylabel("Contact Duration ($\\tau$, s)", fontsize=16, fontweight="bold")
+    ax.set_ylabel("Contact Duration ($\\tau$, s)",
+                  fontsize=16, fontweight="bold")
     ax.set_title(
         "Contact Duration ($\\tau$) vs. Thickness ($h$)",
         fontsize=21,
@@ -250,7 +251,8 @@ def plot_force_subplot(ax, summary_df, colors):
     ) = utils.perform_linear_regression_with_uncertainty(x_force, y_force, yerr_force)
 
     if slope_force is not None:
-        x_fit_force = np.linspace(x_force.min() * 0.95, x_force.max() * 1.05, 100)
+        x_fit_force = np.linspace(
+            x_force.min() * 0.95, x_force.max() * 1.05, 100)
         y_fit_force = slope_force * x_fit_force + intercept_force
 
         ax.plot(
@@ -353,7 +355,8 @@ def plot_cv_subplot(ax, summary_df, colors):
     cv_values = summary_df["duration_cv"].values * 100
     x_cv = summary_df["thickness_mm"].values
 
-    bars = ax.bar(x_cv, cv_values, width=8, alpha=0.8, edgecolor="black", linewidth=2)
+    bars = ax.bar(x_cv, cv_values, width=8, alpha=0.8,
+                  edgecolor="black", linewidth=2)
 
     for bar_rect, cv in zip(bars, cv_values):
         if cv > 10:
@@ -379,7 +382,8 @@ def plot_cv_subplot(ax, summary_df, colors):
         )
 
     ax.set_xlabel("Pad Thickness ($h$, mm)", fontsize=16, fontweight="bold")
-    ax.set_ylabel("Coefficient of Variation ($CV$, %)", fontsize=16, fontweight="bold")
+    ax.set_ylabel("Coefficient of Variation ($CV$, %)",
+                  fontsize=16, fontweight="bold")
     ax.set_title(
         "Experimental Repeatability ($CV$)", fontsize=21, fontweight="bold", pad=15
     )
@@ -499,7 +503,8 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
     detailed_df = pd.read_csv(detailed_csv)
     detailed_df = detailed_df[detailed_df["thickness_mm"].notna()]
 
-    cb_colors = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#CC79A7", "#D55E00"]
+    cb_colors = ["#E69F00", "#56B4E9", "#009E73",
+                 "#F0E442", "#CC79A7", "#D55E00"]
     cb_hatches = ["", "///", "\\\\", "|||", "---", "+++"]
 
     _, ax = plt.subplots(figsize=(14, 7))
@@ -511,11 +516,13 @@ def create_individual_comparison(detailed_csv: Path, output_dir: Path):
     width = 0.15
 
     for i, run in enumerate(runs):
-        run_data = detailed_df[detailed_df["run"] == run].sort_values("thickness_mm")
+        run_data = detailed_df[detailed_df["run"]
+                               == run].sort_values("thickness_mm")
         if len(run_data) > 0:
             durations = [
                 (
-                    run_data[run_data["thickness_mm"] == t]["duration_s"].values[0]
+                    run_data[run_data["thickness_mm"]
+                             == t]["duration_s"].values[0]
                     if len(run_data[run_data["thickness_mm"] == t]) > 0
                     else 0
                 )
@@ -568,10 +575,12 @@ def write_report_header(f, summary_df, detailed_df):
     f.write("CONTACT DURATION ANALYSIS - STATISTICAL REPORT\n")
     f.write("=" * 80 + "\n\n")
 
-    f.write(f"Analysis Date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    f.write(
+        f"Analysis Date: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     f.write(f"Total Measurements: {len(detailed_df)}\n")
     f.write(f"Thickness Conditions: {len(summary_df)}\n")
-    f.write(f"Runs per Condition: {int(summary_df['duration_s_count'].iloc[0])}\n\n")
+    f.write(
+        f"Runs per Condition: {int(summary_df['duration_s_count'].iloc[0])}\n\n")
 
 
 def write_summary_statistics(f, summary_csv):
@@ -598,7 +607,8 @@ def write_statistical_tests(f, summary_df, detailed_df):
         slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
 
         f.write("Linear Regression Analysis:\n")
-        f.write(f"  Equation: Duration = {slope:.6f} × Thickness + {intercept:.6f}\n")
+        f.write(
+            f"  Equation: Duration = {slope:.6f} × Thickness + {intercept:.6f}\n")
         f.write(f"  R² = {r_value**2:.4f}\n")
         f.write(f"  p-value = {p_value:.4f}\n")
         f.write(f"  Standard Error = {std_err:.6f}\n\n")

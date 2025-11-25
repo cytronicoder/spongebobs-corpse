@@ -146,7 +146,8 @@ def plot_threshold_comparison(
     """
     fig, ax = plt.subplots(1, 1, figsize=(10, 10))
 
-    ax.plot(time, force, "b-", linewidth=2, label="Force signal", alpha=0.7, zorder=1)
+    ax.plot(time, force, "b-", linewidth=2,
+            label="Force signal", alpha=0.7, zorder=1)
 
     colors = ["red", "orange", "green", "purple"]
     linestyles = ["-", "--", "-.", ":"]
@@ -209,7 +210,8 @@ def plot_threshold_comparison(
             xy=(mid_time, y_pos),
             fontsize=11,
             ha="center",
-            bbox=dict(boxstyle="round", facecolor=color, alpha=0.3, edgecolor=color),
+            bbox=dict(boxstyle="round", facecolor=color,
+                      alpha=0.3, edgecolor=color),
             zorder=3,
         )
 
@@ -316,7 +318,8 @@ def main():
     csv_path = Path(args.csv_path)
     print(f"Loading data from: {csv_path}")
     print(f"Analyzing run: {args.run}")
-    print(f"Testing thresholds: {[f'{t*100:.0f}%' for t in args.thresholds]}\n")
+    print(
+        f"Testing thresholds: {[f'{t*100:.0f}%' for t in args.thresholds]}\n")
 
     time, force = load_single_run(csv_path, args.run)
 

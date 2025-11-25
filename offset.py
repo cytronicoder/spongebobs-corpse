@@ -131,7 +131,8 @@ def align_runs_by_abs_force_peak(
         aligned_blocks[(run, "Time (s) [aligned]")] = t_aligned
         aligned_blocks[(run, "Force (N)")] = run_data[run]["Force (N)"]
         aligned_blocks[(run, "Position (m)")] = run_data[run]["Position (m)"]
-        aligned_blocks[(run, "Velocity (m/s)")] = run_data[run]["Velocity (m/s)"]
+        aligned_blocks[(run, "Velocity (m/s)")
+                       ] = run_data[run]["Velocity (m/s)"]
         aligned_blocks[(run, "Acceleration (m/s²)")] = run_data[run][
             "Acceleration (m/s²)"
         ]
@@ -222,7 +223,8 @@ def plot_metric_overlay(
     ax.set_title(ttl)
     ax.legend()
     ax.grid(True)
-    out_path = out_dir / f"overlay_{metric.replace('/', '_').replace(' ', '_')}.png"
+    out_path = out_dir / \
+        f"overlay_{metric.replace('/', '_').replace(' ', '_')}.png"
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return out_path
@@ -299,8 +301,10 @@ def process_csv(
         "Velocity (m/s)",
         "Acceleration (m/s²)",
     ]:
-        plot_metric_overlay(aligned_df, metric, overlay_dir, title_suffix=file_stem)
-        plot_metric_per_run(aligned_df, metric, perrun_dir, title_suffix=file_stem)
+        plot_metric_overlay(aligned_df, metric, overlay_dir,
+                            title_suffix=file_stem)
+        plot_metric_per_run(aligned_df, metric, perrun_dir,
+                            title_suffix=file_stem)
 
     if show_plots:
         for metric in [
