@@ -1,105 +1,106 @@
-### Investigating Impact Attenuation Through Variable-Thickness Viscoelastic Pads
+##### Investigating Impact Attenuation Through Variable-Thickness Viscoelastic Pads
 
-We investigated how viscoelastic pads of varying thickness attenuate impacts. We processed force-time data from impact tests on viscoelastic materials, calculated contact durations, and performed statistical evaluations to determine the effectiveness of different pad thicknesses in reducing impact forces.
+This project analyzes force–time traces from impact tests on viscoelastic pads of varying thickness to quantify how thickness affects impact attenuation. The pipeline computes contact durations, extracts summary metrics (e.g., peak force), fits statistical models, and generates publication-ready figures, tables, and reports.
 
-[![Results](/outputs/contact_analysis_10pct/comprehensive_summary.png)](/outputs/contact_analysis_10pct/comprehensive_summary.png)
+[![Results](batch/outputs/batch_analysis_plot.png)](batch/outputs/batch_analysis_plot.png)
 
 > [!NOTE]
-> This repository contains the source code and data for my IBDP Physics HL Internal Assessment. It is not intended for public use, and should be used solely for educational purposes. However, you are free to explore the code and data for learning on your own.
+> This repository contains the source code and data for my IBDP Physics HL Internal Assessment (IA). It is not intended for public use; feel free to explore for educational purposes.
+
+#### Install
+
+```bash
+git clone https://github.com/cytronicoder/spongebobs-corpse.git
+cd spongebobs-corpse
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
+For development tools (lint/tests):
+
+```bash
+pip install -e .[dev]
+```
+
+#### Run the analysis pipeline
+
+```bash
+python -m spongebobs_corpse pipeline run-batch --input batch/data.csv --out batch/outputs
+```
+
+Equivalent console script:
+
+```bash
+spongebobs-corpse run --input batch/data.csv --out batch/outputs
+```
+
+#### Reproducibility and parity check
+
+Regenerate all outputs, then verify against the expected manifest:
+
+```bash
+python -m spongebobs_corpse pipeline run-batch --input batch/data.csv --out batch/outputs
+python tools/verify_outputs.py --manifest batch/outputs/manifest_expected.json --repo-root .
+```
+
+This produces:
+
+- publication figures (`.png` + `.pdf`) and caption sidecars (`*_caption.txt`)
+- model tables and residual diagnostics
+- statistical reports
+- legacy-compatible batch artifacts (manifest-checked)
+
+#### Output structure
+
+- `batch/outputs/` — canonical outputs (figures, tables, reports)
+- `batch/outputs/final/` — publication copies of final figures (if enabled by pipeline)
+- `batch/` — legacy-compatible top-level deliverables retained for parity
+
+Caption sidecars are written as:
+
+- `<stem>_caption.txt`
+
+#### Generated outputs
+
+- `batch/outputs/batch_analysis_plot.png` — Multi-panel model comparison for `F_peak` and `tau` (PDF: `batch/outputs/batch_analysis_plot.pdf`)
+- `batch/outputs/batch_cv_plot.png` — Coefficient of variation by thickness (PDF: `batch/outputs/batch_cv_plot.pdf`)
+- `batch/outputs/residual_plots.png` — Residual diagnostics for fitted models (PDF: `batch/outputs/residual_plots.pdf`)
+- `batch/outputs/ANALYSIS_SUMMARY.txt`
+- `batch/outputs/statistical_report.txt`
+- `batch/outputs/model_comparison.txt`
+- `batch/outputs/additional_statistics.txt`
+- `batch/outputs/model_parameters.csv`
+- `batch/outputs/model_residuals.csv`
+- `batch/outputs/pairwise_comparisons.csv`
+- `batch/outputs/batch_detailed.csv`
+- `batch/outputs/batch_summary.csv`
+- `batch/outputs/summary_table_formatted.csv`
+
+Notes on compatibility:
+
+- Legacy top-level `batch/*` deliverables have been removed from the pipeline; the canonical outputs are under `batch/outputs/` and the manifest reflects that.
 
 #### Documentation
 
-Comprehensive documentation is available in the [`docs/`](docs/) directory:
+Documentation is in `docs/`:
 
-- **[Getting Started](docs/getting-started.md)** - Installation and usage instructions
-- **[API Reference](docs/api-reference.md)** - Function and class documentation
-- **[Analysis Methods](docs/analysis-methods.md)** - Mathematical and statistical methods
-- **[Troubleshooting](docs/troubleshooting.md)** - Common issues and solutions
+- `docs/getting-started.md` — installation and usage
+- `docs/api-reference.md` — API reference
+- `docs/analysis-methods.md` — mathematical/physical methods
+- `docs/statistical-methods.md` — inference and uncertainty quantification
+- `docs/troubleshooting.md` — common issues
 
-#### Installation
+#### Quality gates
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/cytronicoder/spongebobs-corpse.git
-   cd spongebobs-corpse
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   pip install numpy pandas matplotlib scipy
-   ```
-
-#### Usage
-
-1. Place your CSV data files in the `data/` directory.
-
-2. Run the offset alignment:
-
-   ```bash
-   python offset.py
-   ```
-
-3. Calculate contact durations using multiple methods:
-
-   ```bash
-   # Use force-threshold method (default)
-   python contact_duration.py --method threshold --threshold 0.05
-
-   # Compare all three methods
-   python contact_duration.py --method all
-
-   # Use velocity-based method with custom threshold
-   python contact_duration.py --method velocity --velocity_threshold 0.1
-
-   # Use energy-based method with custom mass
-   python contact_duration.py --method energy --cart_mass 0.5
-   ```
-
-4. Generate method comparison plots:
-
-   ```bash
-   python compare_methods.py "outputs/dr lee go brr - 40mm/dr lee go brr - 40mm_aligned.csv" \
-       --run "Run 2" --threshold 0.05 --mass 0.5 --output "method_comparison.png"
-   ```
-
-5. Compare threshold sensitivity:
-
-   ```bash
-   python compare_thresholds.py "outputs/dr lee go brr - 40mm/dr lee go brr - 40mm_aligned.csv" \
-       --run "Run 2" --thresholds 0.01 0.03 0.05 0.10 --output "threshold_comparison.png"
-   ```
-
-6. Perform statistical analysis:
-
-   ```bash
-   python analysis.py
-   ```
-
-7. View results in the `outputs/` directory, including plots and statistical reports.
-
-#### IA Batch Analysis
-
-For the purposes of my IA, I have implemented a script that automatically processes all curated data files to generates the plots and analysis reports. This script is located in `batch/batch_analysis.py`.
-
-#### Analysis Methods
-
-The project implements three contact duration detection methods:
-
-- **Force-Threshold (Primary):** Detects contact when |force| exceeds a percentage of peak force
-- **Velocity-Based:** Uses velocity threshold detection to identify contact boundaries (handles sparse data)
-- **Energy-Based:** Tracks kinetic energy transformation during impact (finds global maximum first)
-
-See [Analysis Methods](docs/analysis-methods.md) for detailed mathematical descriptions.
-
-#### Data Format
-
-Input data should be CSV files with columns for time and force measurements. Example files are provided in the `data/` directory.
+```bash
+ruff check .
+pytest
+```
 
 #### Requirements
 
-- Python 3.8 or higher
+- Python 3.8+
 - numpy
 - pandas
 - matplotlib
@@ -107,4 +108,4 @@ Input data should be CSV files with columns for time and force measurements. Exa
 
 #### License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT. See [`LICENSE`](LICENSE) for details.

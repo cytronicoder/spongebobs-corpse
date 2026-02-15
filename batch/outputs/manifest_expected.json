@@ -1,0 +1,19 @@
+{
+  "artifacts": [
+    {"path": "batch/outputs/batch_analysis_plot.png", "type": "figure", "required_formats": ["png"]},
+    {"path": "batch/outputs/batch_cv_plot.png", "type": "figure", "required_formats": ["png"]},
+    {"path": "batch/outputs/residual_plots.png", "type": "figure", "required_formats": ["png"]},
+
+    {"path": "batch/outputs/batch_detailed.csv", "type": "table", "required_formats": ["csv"]},
+    {"path": "batch/outputs/batch_summary.csv", "type": "table", "required_formats": ["csv"]},
+    {"path": "batch/outputs/summary_table_formatted.csv", "type": "table", "required_formats": ["csv"]},
+    {"path": "batch/outputs/model_parameters.csv", "type": "table", "required_formats": ["csv"]},
+    {"path": "batch/outputs/model_residuals.csv", "type": "table", "required_formats": ["csv"]},
+    {"path": "batch/outputs/pairwise_comparisons.csv", "type": "table", "required_formats": ["csv"]},
+
+    {"path": "batch/outputs/ANALYSIS_SUMMARY.txt", "type": "report", "required_formats": ["txt"]},
+    {"path": "batch/outputs/statistical_report.txt", "type": "report", "required_formats": ["txt"]},
+    {"path": "batch/outputs/model_comparison.txt", "type": "report", "required_formats": ["txt"]},
+    {"path": "batch/outputs/additional_statistics.txt", "type": "report", "required_formats": ["txt"]}
+  ]
+}
