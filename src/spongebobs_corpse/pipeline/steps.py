@@ -161,7 +161,7 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
         (models[3], axis_label("sqrt(h)", "mm^0.5"), axis_label("Contact duration tau", "s"), "Power-law Model", "orange"),
     ]
 
-    fig_main = draw_full_model_figure(specs, fit_summary_lines)
+    fig_main = draw_full_model_figure(specs, fit_summary_lines, cv_data=summary)
     save_figure(
         fig_main,
         stem="batch_analysis_plot",
@@ -169,11 +169,11 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
         dpi=config.io.figure_dpi,
         final_dir=manager.final_dir,
         caption_metadata={
-            "data": "Mean peak force and mean contact duration versus pad thickness.",
-            "uncertainty": "Error bars are combined uncertainty; shaded regions are 95% CI.",
+            "data": "Mean peak force (blue), contact duration (orange), and coefficient of variation (bottom panel) versus thickness.",
+            "uncertainty": "Error bars are combined uncertainty; shaded regions are 95% CI. Bottom panel: CV = SD/mean.",
             "method": config.analysis.regression_method,
             "n": int(summary["duration_s_count"].sum()),
-            "note": "Legend and fit summaries are in the right-side gutter for print readability.",
+            "note": "Top panels: linear vs power-law fits. Bottom panel: repeatability check.",
         },
     )
 

@@ -1,4 +1,4 @@
-##### Investigating Impact Attenuation Through Variable-Thickness Viscoelastic Pads
+### Investigating Impact Attenuation Through Variable-Thickness Viscoelastic Pads
 
 This project analyzes force–time traces from impact tests on viscoelastic pads of varying thickness to quantify how thickness affects impact attenuation. The pipeline computes contact durations, extracts summary metrics (e.g., peak force), fits statistical models, and generates publication-ready figures, tables, and reports.
 

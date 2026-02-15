@@ -1,4 +1,4 @@
-Data: Mean peak force and mean contact duration versus pad thickness.
-Uncertainty: Error bars are combined uncertainty; shaded regions are 95% CI.
+Data: Mean peak force (blue), contact duration (orange), and coefficient of variation (bottom panel) versus thickness.
+Uncertainty: Error bars are combined uncertainty; shaded regions are 95% CI. Bottom panel: CV = SD/mean.
 n=35; fit method=WLS
-Legend and fit summaries are in the right-side gutter for print readability.
+Top panels: linear vs power-law fits. Bottom panel: repeatability check.

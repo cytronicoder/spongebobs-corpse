@@ -39,9 +39,7 @@ def draw_model_panel(ax, fit: dict, x_label: str, y_label: str, title: str, colo
     ax.grid(True, axis="y", alpha=0.2)
 
 
-def draw_cv_plot(summary_df):
-    apply_style()
-    fig, ax = plt.subplots(figsize=(10, 4), constrained_layout=True)
+def _plot_cv_on_ax(ax, summary_df):
     cv_values = summary_df["duration_cv"].to_numpy(dtype=float) * 100
     thicknesses = summary_df["thickness_mm"].to_numpy(dtype=float)
     colors = ["#D55E00" if cv > 10 else "#F0E442" if cv > 5 else "#029E73" for cv in cv_values]
@@ -53,6 +51,13 @@ def draw_cv_plot(summary_df):
     ax.set_ylabel(axis_label("Coefficient of variation CV", "%"))
     ax.set_title("Experimental repeatability")
     ax.grid(True, alpha=0.2, axis="y")
+    return cv_values
+
+
+def draw_cv_plot(summary_df):
+    apply_style()
+    fig, ax = plt.subplots(figsize=(10, 4), constrained_layout=True)
+    cv_values = _plot_cv_on_ax(ax, summary_df)
     ax.legend(loc="upper left")
     ax.set_ylim(0, max(cv_values) * 1.2)
     return fig
@@ -74,16 +79,27 @@ def draw_residual_plots(params_list: list[dict]):
     return fig
 
 
-def draw_full_model_figure(model_specs: list[tuple], summary_lines: list[str]):
+def draw_full_model_figure(model_specs: list[tuple], summary_lines: list[str], cv_data=None):
     apply_style()
     palette = get_palette()
-    fig = plt.figure(figsize=(15, 10), constrained_layout=True)
-    gs = fig.add_gridspec(2, 3, width_ratios=[1.0, 1.0, 0.95])
+
+    if cv_data is not None:
+        nrows = 3
+        height_ratios = [1.0, 1.0, 0.8]
+        figsize = (15, 14)
+    else:
+        nrows = 2
+        height_ratios = [1.0, 1.0]
+        figsize = (15, 10)
+
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    gs = fig.add_gridspec(nrows, 3, width_ratios=[1.0, 1.0, 0.95], height_ratios=height_ratios)
+
     axes = np.array([
         [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])],
         [fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])],
     ])
-    ax_gutter = fig.add_subplot(gs[:, 2])
+    ax_gutter = fig.add_subplot(gs[0:2, 2])
     ax_gutter.axis("off")
 
     for ax, spec in zip(axes.flat, model_specs):
@@ -101,4 +117,11 @@ def draw_full_model_figure(model_specs: list[tuple], summary_lines: list[str]):
         draw_gutter_legend(ax_gutter, [x[0] for x in order], [x[1] for x in order], y_anchor=0.52)
 
     draw_gutter_text(ax_gutter, summary_lines, title="Fit summary", y_start=0.98, line_step=0.07)
+
+    if cv_data is not None:
+        ax_cv = fig.add_subplot(gs[2, :])
+        cv_vals = _plot_cv_on_ax(ax_cv, cv_data)
+        ax_cv.legend(loc="upper left")
+        ax_cv.set_ylim(0, max(cv_vals) * 1.2)
+
     return fig
