@@ -5,7 +5,6 @@ import numpy as np
 
 from ..stats import confidence_band_linear
 from ._labels import axis_label
-from .layout import draw_gutter_legend, draw_gutter_text
 from .style import apply_style, get_palette
 
 
@@ -43,9 +42,18 @@ def _plot_cv_on_ax(ax, summary_df):
     cv_values = summary_df["duration_cv"].to_numpy(dtype=float) * 100
     thicknesses = summary_df["thickness_mm"].to_numpy(dtype=float)
     colors = ["#D55E00" if cv > 10 else "#F0E442" if cv > 5 else "#029E73" for cv in cv_values]
-    bars = ax.bar(thicknesses, cv_values, width=8, alpha=0.8, edgecolor="black", linewidth=1.2, color=colors)
-    for bar, cv in zip(bars, cv_values):
-        ax.text(bar.get_x() + bar.get_width() / 2.0, bar.get_height(), f"{cv:.1f}%", ha="center", va="bottom", fontsize=10)
+    bars = ax.bar(
+        thicknesses, cv_values, width=8, alpha=0.8, edgecolor="black", linewidth=1.2, color=colors
+    )
+    for bar, cv in zip(bars, cv_values, strict=True):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0,
+            bar.get_height(),
+            f"{cv:.1f}%",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+        )
     ax.axhline(5, color="#D55E00", linestyle="--", linewidth=1.8, alpha=0.6, label="5% threshold")
     ax.set_xlabel(axis_label("Pad thickness h", "mm"))
     ax.set_ylabel(axis_label("Coefficient of variation CV", "%"))
@@ -66,8 +74,13 @@ def draw_cv_plot(summary_df):
 def draw_residual_plots(params_list: list[dict]):
     apply_style()
     fig, axes = plt.subplots(2, 2, figsize=(14, 10), constrained_layout=True)
-    names = ["Peak Force - Linear", "Contact Duration - Linear", "Peak Force - Power-Law", "Contact Duration - Power-Law"]
-    for ax, params, name in zip(axes.flat, params_list, names):
+    names = [
+        "Peak Force - Linear",
+        "Contact Duration - Linear",
+        "Peak Force - Power-Law",
+        "Contact Duration - Power-Law",
+    ]
+    for ax, params, name in zip(axes.flat, params_list, names, strict=True):
         fitted = params["fitted_values"]
         residuals = params["residuals"]
         ax.scatter(fitted, residuals, alpha=0.7, s=32, edgecolor="black")
@@ -100,7 +113,7 @@ def draw_full_model_figure(model_specs: list[tuple], cv_data=None):
         [fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])],
     ])
 
-    for ax, spec in zip(axes.flat, model_specs):
+    for ax, spec in zip(axes.flat, model_specs, strict=True):
         fit, x_label, y_label, title, color_name = spec
         draw_model_panel(ax, fit, x_label, y_label, title, palette[color_name])
 
@@ -109,7 +122,7 @@ def draw_full_model_figure(model_specs: list[tuple], cv_data=None):
         handles, labels = axes[0, col].get_legend_handles_labels()
         order = []
         for target in ("Data", "Model", "95% CI"):
-            for h, lbl in zip(handles, labels):
+            for h, lbl in zip(handles, labels, strict=True):
                 if lbl == target:
                     order.append((h, lbl))
                     break

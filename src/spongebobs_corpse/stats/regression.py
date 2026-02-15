@@ -24,15 +24,11 @@ Error Bar Definitions:
 
 """
 
-import numpy as np
-
-import pandas as pd
-
-from scipy import stats
-
 from dataclasses import dataclass
 
-from typing import Dict, List, Tuple, Optional
+import numpy as np
+import pandas as pd
+from scipy import stats
 
 
 @dataclass
@@ -68,7 +64,7 @@ class RegressionResults:
 
         text = f"Linear Regression: {y_name} = slope * {x_name} + intercept\n"
 
-        text += f"=" * 70 + "\n"
+        text += "=" * 70 + "\n"
 
         text += f"Slope:     {self.slope:.6f} ± {self.slope_se:.6f}\n"
 
@@ -76,7 +72,7 @@ class RegressionResults:
 
         text += f"  p-value: {self.p_value_slope:.4e}\n"
 
-        text += f"\n"
+        text += "\n"
 
         text += f"Intercept: {self.intercept:.6f} ± {self.intercept_se:.6f}\n"
 
@@ -84,9 +80,9 @@ class RegressionResults:
 
         text += f"  p-value: {self.p_value_intercept:.4e}\n"
 
-        text += f"\n"
+        text += "\n"
 
-        text += f"Goodness of Fit:\n"
+        text += "Goodness of Fit:\n"
 
         text += f"  R²:      {self.r_squared:.4f}\n"
 
@@ -143,7 +139,10 @@ class PairwiseComparison:
 
         text += f"  95% CI: [{self.ci_lower:.6f}, {self.ci_upper:.6f}]\n"
 
-        text += f"  t({self.degrees_of_freedom:.1f}) = {self.t_statistic:.3f}, p = {self.p_value:.4f} {sig_marker}\n"
+        p_val = self.p_value
+        t_stat = self.t_statistic
+        dof = self.degrees_of_freedom
+        text += f"  t({dof:.1f}) = {t_stat:.3f}, p = {p_val:.4f} {sig_marker}\n"
 
         return text
 
@@ -210,7 +209,7 @@ def analyze_residuals(residuals: np.ndarray) -> str:
 def weighted_linear_regression(
     x: np.ndarray,
     y: np.ndarray,
-    weights: Optional[np.ndarray] = None,
+    weights: np.ndarray | None = None,
     alpha: float = 0.05,
 ) -> RegressionResults:
     """
@@ -263,8 +262,6 @@ def weighted_linear_regression(
 
         rss = np.sum(residuals**2)
 
-        tss = np.sum((y - np.mean(y)) ** 2)
-
         dof = n - 2
 
         rmse = np.sqrt(rss / dof)
@@ -289,9 +286,12 @@ def weighted_linear_regression(
 
         p_value_slope = p_value
 
-        t_intercept = intercept / se_intercept
-
-        p_value_intercept = 2 * (1 - stats.t.cdf(abs(t_intercept), dof))
+        if se_intercept > 0:
+            t_intercept = intercept / se_intercept
+            p_value_intercept = 2 * (1 - stats.t.cdf(abs(t_intercept), dof))
+        else:
+            t_intercept = np.inf if intercept != 0 else 0.0
+            p_value_intercept = 0.0 if intercept != 0 else 1.0
 
         r_squared = r_value**2
 
@@ -383,9 +383,9 @@ def weighted_linear_regression(
 def fit_linear(
     x: np.ndarray,
     y: np.ndarray,
-    yerr: Optional[np.ndarray] = None,
+    yerr: np.ndarray | None = None,
     method: str = "OLS",
-) -> Dict:
+) -> dict:
     """
     Fit a linear model y = m*x + c using OLS or WLS.
 
@@ -457,9 +457,9 @@ def fit_linear(
 def fit_powerlaw(
     x: np.ndarray,
     y: np.ndarray,
-    yerr: Optional[np.ndarray] = None,
+    yerr: np.ndarray | None = None,
     method: str = "OLS",
-) -> Dict:
+) -> dict:
     """
     Fit the IA power-law surrogate y = a + b*sqrt(x).
     """
@@ -486,9 +486,9 @@ def fit_powerlaw(
 def fit_exponential(
     x: np.ndarray,
     y: np.ndarray,
-    yerr: Optional[np.ndarray] = None,
+    yerr: np.ndarray | None = None,
     method: str = "OLS",
-) -> Dict:
+) -> dict:
     """
     Fit exponential model y = a*exp(b*x) by linearizing ln(y).
     """
@@ -522,9 +522,9 @@ def fit_exponential(
 
 def confidence_band_linear(
     x_grid: np.ndarray,
-    results: Dict,
+    results: dict,
     level: float = 0.95,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Compute confidence band of the mean response for a fitted linear-like model.
     """
@@ -623,7 +623,7 @@ def adjacent_thickness_comparisons(
     count_col: str = "duration_s_count",
     thickness_col: str = "thickness_mm",
     alpha: float = 0.05,
-) -> List[PairwiseComparison]:
+) -> list[PairwiseComparison]:
     """
 
     Perform pairwise comparisons between adjacent thickness levels.
@@ -690,7 +690,7 @@ def compute_prediction_bands(
     reg_results: RegressionResults,
     x_pred: np.ndarray,
     alpha: float = 0.05,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
 
     Compute confidence and prediction bands for regression.
@@ -744,7 +744,7 @@ def compute_prediction_bands(
     return y_pred, ci_lower, ci_upper, pi_lower, pi_upper
 
 
-def residual_analysis(reg_results: RegressionResults, x: np.ndarray) -> Dict:
+def residual_analysis(reg_results: RegressionResults, x: np.ndarray) -> dict:
     """
 
     Perform residual diagnostics for regression.
@@ -891,8 +891,8 @@ def format_p_value(p: float) -> str:
 
 
 def bonferroni_correction(
-    p_values: List[float], alpha: float = 0.05
-) -> Tuple[List[bool], float]:
+    p_values: list[float], alpha: float = 0.05
+) -> tuple[list[bool], float]:
     """
 
     Apply Bonferroni correction for multiple comparisons.

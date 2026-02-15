@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 REQUIRED_COLUMNS = ("h", "Run", "tau", "F_peak")
 
 

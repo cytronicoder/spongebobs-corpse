@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -28,11 +27,12 @@ def _fit_models(summary_df: pd.DataFrame, method: str) -> list[dict]:
     f_pow = fit_powerlaw(x, force_y, yerr=force_err, method=method)
     t_pow = fit_powerlaw(x, tau_y, yerr=tau_err, method=method)
 
+    exclude = {"x", "y", "yerr", "residuals", "fitted_values", "x_original"}
     return [
         {
             "parameter": "peak_force",
             "model": "linear",
-            **{k: v for k, v in f_lin.items() if k not in {"x", "y", "yerr", "residuals", "fitted_values", "x_original"}},
+            **{k: v for k, v in f_lin.items() if k not in exclude},
             "fitted_values": f_lin["fitted_values"],
             "residuals": f_lin["residuals"],
             "x": f_lin["x"],
@@ -42,7 +42,7 @@ def _fit_models(summary_df: pd.DataFrame, method: str) -> list[dict]:
         {
             "parameter": "contact_duration",
             "model": "linear",
-            **{k: v for k, v in t_lin.items() if k not in {"x", "y", "yerr", "residuals", "fitted_values", "x_original"}},
+            **{k: v for k, v in t_lin.items() if k not in exclude},
             "fitted_values": t_lin["fitted_values"],
             "residuals": t_lin["residuals"],
             "x": t_lin["x"],
@@ -52,7 +52,7 @@ def _fit_models(summary_df: pd.DataFrame, method: str) -> list[dict]:
         {
             "parameter": "peak_force",
             "model": "powerlaw",
-            **{k: v for k, v in f_pow.items() if k not in {"x", "y", "yerr", "residuals", "fitted_values", "x_original"}},
+            **{k: v for k, v in f_pow.items() if k not in exclude},
             "fitted_values": f_pow["fitted_values"],
             "residuals": f_pow["residuals"],
             "x": np.sqrt(f_pow["x_original"]),
@@ -62,7 +62,7 @@ def _fit_models(summary_df: pd.DataFrame, method: str) -> list[dict]:
         {
             "parameter": "contact_duration",
             "model": "powerlaw",
-            **{k: v for k, v in t_pow.items() if k not in {"x", "y", "yerr", "residuals", "fitted_values", "x_original"}},
+            **{k: v for k, v in t_pow.items() if k not in exclude},
             "fitted_values": t_pow["fitted_values"],
             "residuals": t_pow["residuals"],
             "x": np.sqrt(t_pow["x_original"]),
@@ -99,7 +99,10 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
 
     residual_rows: list[dict[str, float | str]] = []
     for row in models:
-        for xi, yi, fi, ri in zip(row["x"], row["y"], row["fitted_values"], row["residuals"]):
+        zipped = zip(
+            row["x"], row["y"], row["fitted_values"], row["residuals"], strict=True
+        )
+        for xi, yi, fi, ri in zipped:
             residual_rows.append(
                 {
                     "parameter": row["parameter"],
@@ -110,7 +113,8 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
                     "residual": float(ri),
                 }
             )
-    residual_artifact = save_table(pd.DataFrame(residual_rows), manager.output_file("model_residuals.csv"))
+    res_target = manager.output_file("model_residuals.csv")
+    residual_artifact = save_table(pd.DataFrame(residual_rows), res_target)
 
     comparisons = pairwise_adjacent_comparisons(summary)
     comparisons_artifact = save_table(comparisons, manager.output_file("pairwise_comparisons.csv"))
@@ -145,10 +149,34 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
     summary_table_artifact = save_table(table, manager.output_file("summary_table_formatted.csv"))
 
     specs = [
-        (models[0], axis_label("Thickness h", "mm"), axis_label("Peak force F_peak", "N"), "Linear Model", "blue"),
-        (models[1], axis_label("Thickness h", "mm"), axis_label("Contact duration tau", "s"), "Linear Model", "orange"),
-        (models[2], axis_label("sqrt(h)", "mm^0.5"), axis_label("Peak force F_peak", "N"), "Power-law Model", "blue"),
-        (models[3], axis_label("sqrt(h)", "mm^0.5"), axis_label("Contact duration tau", "s"), "Power-law Model", "orange"),
+        (
+            models[0],
+            axis_label("Thickness h", "mm"),
+            axis_label("Peak force F_peak", "N"),
+            "Linear Model",
+            "blue",
+        ),
+        (
+            models[1],
+            axis_label("Thickness h", "mm"),
+            axis_label("Contact duration tau", "s"),
+            "Linear Model",
+            "orange",
+        ),
+        (
+            models[2],
+            axis_label("sqrt(h)", "mm^0.5"),
+            axis_label("Peak force F_peak", "N"),
+            "Power-law Model",
+            "blue",
+        ),
+        (
+            models[3],
+            axis_label("sqrt(h)", "mm^0.5"),
+            axis_label("Contact duration tau", "s"),
+            "Power-law Model",
+            "orange",
+        ),
     ]
 
     fig_main = draw_full_model_figure(specs, cv_data=summary)
@@ -159,8 +187,14 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
         dpi=config.io.figure_dpi,
         final_dir=manager.final_dir,
         caption_metadata={
-            "data": "Mean peak force (blue), contact duration (orange), and coefficient of variation (bottom panel) versus thickness.",
-            "uncertainty": "Error bars are combined uncertainty; shaded regions are 95% CI. Bottom panel: CV = SD/mean.",
+            "data": (
+                "Mean peak force (blue), contact duration (orange), "
+                "and coefficient of variation (bottom panel) versus thickness."
+            ),
+            "uncertainty": (
+                "Error bars are combined uncertainty; shaded regions are 95% CI. "
+                "Bottom panel: CV = SD/mean."
+            ),
             "method": config.analysis.regression_method,
             "n": int(summary["duration_s_count"].sum()),
             "note": "Top panels: linear vs power-law fits. Bottom panel: repeatability check.",

@@ -15,13 +15,22 @@ def _paths_for_entry(entry_path: Path, required_formats: list[str]) -> list[Path
         if fmt == "caption_txt":
             checks.append(entry_path.with_name(f"{entry_path.stem}_caption.txt"))
         elif fmt == "png":
-            checks.append(entry_path if entry_path.suffix.lower() == ".png" else entry_path.with_suffix(".png"))
+            if entry_path.suffix.lower() == ".png":
+                checks.append(entry_path)
+            else:
+                checks.append(entry_path.with_suffix(".png"))
         elif fmt == "pdf":
             checks.append(entry_path.with_suffix(".pdf"))
         elif fmt == "csv":
-            checks.append(entry_path if entry_path.suffix.lower() == ".csv" else entry_path.with_suffix(".csv"))
+            if entry_path.suffix.lower() == ".csv":
+                checks.append(entry_path)
+            else:
+                checks.append(entry_path.with_suffix(".csv"))
         elif fmt == "txt":
-            checks.append(entry_path if entry_path.suffix.lower() == ".txt" else entry_path.with_suffix(".txt"))
+            if entry_path.suffix.lower() == ".txt":
+                checks.append(entry_path)
+            else:
+                checks.append(entry_path.with_suffix(".txt"))
         else:
             checks.append(entry_path.with_suffix(f".{fmt}"))
     return checks

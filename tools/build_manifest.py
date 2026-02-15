@@ -11,18 +11,29 @@ def build_manifest(outputs_dir: Path, batch_dir: Path) -> dict:
     for file in sorted(outputs_dir.glob("*")):
         if file.is_dir() or file.name == "manifest_expected.json":
             continue
-        kind = "figure" if file.suffix.lower() in {".png", ".pdf"} else "table" if file.suffix.lower() == ".csv" else "report"
-        required = []
-        if file.suffix.lower() == ".png":
-            required = ["png", "pdf", "caption_txt"]
-        elif file.suffix.lower() == ".csv":
-            required = ["csv"]
-        elif file.suffix.lower() == ".txt":
-            required = ["txt"]
-        if required:
-            artifacts.append({"path": str(file.relative_to(batch_dir.parent)), "type": kind, "required_formats": required})
 
-    # legacy top-level artifacts intentionally omitted — manifest reflects canonical `batch/outputs/` only
+        ext = file.suffix.lower()
+        if ext in {".png", ".pdf"}:
+            kind = "figure"
+        elif ext == ".csv":
+            kind = "table"
+        else:
+            kind = "report"
+
+        required = []
+        if ext == ".png":
+            required = ["png", "pdf", "caption_txt"]
+        elif ext == ".csv":
+            required = ["csv"]
+        elif ext == ".txt":
+            required = ["txt"]
+
+        if required:
+            rel_path = str(file.relative_to(batch_dir.parent))
+            artifacts.append({"path": rel_path, "type": kind, "required_formats": required})
+
+    # legacy top-level artifacts intentionally omitted — manifest reflects canonical batch/outputs/
+    # only
 
     return {"artifacts": artifacts}
 

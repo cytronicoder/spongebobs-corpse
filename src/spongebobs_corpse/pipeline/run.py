@@ -67,7 +67,9 @@ def run_pipeline(
 
     resolved_input = _resolve_input_csv(repo_root, input_csv)
 
-    manager = OutputManager(repo_root=repo_root, out_dir=out_dir, create_final_dir=config.io.create_final_dir)
+    manager = OutputManager(
+        repo_root=repo_root, out_dir=out_dir, create_final_dir=config.io.create_final_dir
+    )
     artifacts = run_steps(config=config, input_csv=resolved_input, manager=manager)
 
     manifest_path = repo_root / config.io.manifest_path

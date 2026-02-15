@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Dict
-
 import matplotlib as mpl
 
-PALETTE: Dict[str, str] = {
+PALETTE: dict[str, str] = {
     "blue": "#1f4e79",
     "orange": "#c05a00",
     "green": "#2d7f5e",
@@ -50,6 +48,6 @@ def apply_style() -> None:
     )
 
 
-def get_palette() -> Dict[str, str]:
+def get_palette() -> dict[str, str]:
     """Return the shared color palette."""
     return dict(PALETTE)
