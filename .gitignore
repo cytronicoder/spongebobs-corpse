@@ -145,15 +145,14 @@ env.bak/
 venv.bak/
 
 # Generated batch artifacts (legacy top-level and outputs)
-# Keep `batch/data.csv` tracked — ignore only generated deliverables
+# Keep `batch/data.csv` and the manifest tracked — ignore only generated deliverables
 /batch/comprehensive_summary.*
 /batch/runs_comparison.*
 /batch/contact_duration_detailed.csv
 /batch/contact_duration_summary.csv
 /batch/summary_table_formatted.csv
 /batch/statistical_report.txt
-/batch/outputs/
-/batch/final/
+/batch/outputs/final/
 
 # Spyder project settings
 .spyderproject

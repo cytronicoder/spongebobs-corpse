@@ -1,0 +1,3 @@
+Data: Residuals versus fitted values for each regression model.
+Uncertainty: Residuals from fitted models.
+n=4; fit method=WLS

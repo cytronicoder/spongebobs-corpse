@@ -418,36 +418,45 @@ None
 
 - `IOError`: If unable to create directory or save file
 
-## Module: utils.py
+## Module: ib_utils.py
 
 ### Functions
 
-#### format_uncertainty
+#### format_uncertainty_ib
 
 ```python
-def format_uncertainty(value)
+def format_uncertainty_ib(value, uncertainty)
 ```
 
-Format uncertainty to appropriate significant figures.
+Format value and uncertainty according to IB rules.
 
 **Parameters:**
 
-- `value` (float or None): Uncertainty value to format
+- `value` (float): Value to format
+- `uncertainty` (float): Uncertainty value
 
 **Returns:**
 
-- `str`: Formatted string with 1-2 significant figures
+- `str`: Formatted string (e.g., "1.23 ± 0.05")
 
-**Formatting Rules:**
-
-- Returns "N/A" for None, 0, or NaN
-- 2 significant figures if first digit is 1
-- 1 significant figure otherwise
-- Scientific notation for values < 0.01 (LaTeX format)
-
-**Examples:**
+#### perform_regression
 
 ```python
+def perform_regression(x, y, y_err=None)
+```
+
+Perform linear regression and return parameters with uncertainties.
+Uses Min-Max Lines method if `y_err` is provided and enabled in config.
+
+**Parameters:**
+
+- `x` (array): Independent variable
+- `y` (array): Dependent variable
+- `y_err` (array, optional): Uncertainty in y
+
+**Returns:**
+
+- `dict`: Regression results including slope, intercept, and uncertainties.
 format_uncertainty(0.0234)     # "0.02"
 format_uncertainty(0.123)      # "0.12"  (first digit is 1)
 format_uncertainty(0.000156)   # "1.6 \\times 10^{-4}"

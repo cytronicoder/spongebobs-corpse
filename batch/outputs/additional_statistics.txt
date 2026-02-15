@@ -1,0 +1,15 @@
+ADDITIONAL STATISTICS
+================================================================================
+        variable  group1  group2  mean_diff  se_diff  t_statistic  p_value  significant  ci_lower  ci_upper
+contact_duration  4.0 mm 16.0 mm     -0.012 0.006325    -1.897367 0.095818        False -0.026687  0.002687
+contact_duration 16.0 mm 28.0 mm     -0.012 0.004690    -2.558409 0.039416         True -0.023218 -0.000782
+contact_duration 28.0 mm 40.0 mm      0.002 0.003464     0.577350 0.579584        False -0.005988  0.009988
+contact_duration 40.0 mm 52.0 mm     -0.002 0.003464    -0.577350 0.579584        False -0.009988  0.005988
+contact_duration 52.0 mm 64.0 mm     -0.004 0.004000    -1.000000 0.348359        False -0.013325  0.005325
+contact_duration 64.0 mm 76.0 mm      0.000 0.004472     0.000000 1.000000        False -0.010313  0.010313
+      peak_force  4.0 mm 16.0 mm      0.584 0.287604     2.030571 0.098926        False -0.158806  1.326806
+      peak_force 16.0 mm 28.0 mm      0.306 0.127538     2.399281 0.043350         True  0.011681  0.600319
+      peak_force 28.0 mm 40.0 mm      0.322 0.094446     3.409365 0.017179         True  0.083821  0.560179
+      peak_force 40.0 mm 52.0 mm      0.590 0.093531     6.308086 0.001130         True  0.354484  0.825516
+      peak_force 52.0 mm 64.0 mm      0.320 0.091586     3.493983 0.017339         True  0.084712  0.555288
+      peak_force 64.0 mm 76.0 mm      0.494 0.092347     5.349379 0.003081         True  0.256498  0.731502

@@ -1,0 +1,4 @@
+Data: Grouped bar chart of run-level contact durations at each thickness.
+Uncertainty: Raw run values shown; no model fit.
+n=15; fit method=Descriptive comparison
+Used to check inter-run consistency before aggregate model fitting.

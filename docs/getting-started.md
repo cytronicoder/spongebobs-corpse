@@ -143,13 +143,39 @@ python analysis.py
 ### Example 2: Compare Different Thresholds
 
 ```bash
-# Process with 3% threshold
-python contact_duration.py outputs/dr\ lee\ go\ brr\ -\ 4mm/dr\ lee\ go\ brr\ -\ 4mm_aligned.csv --threshold 0.03
+### Example 2: Batch Analysis
 
-# Process with 10% threshold
-python contact_duration.py outputs/dr\ lee\ go\ brr\ -\ 4mm/dr\ lee\ go\ brr\ -\ 4mm_aligned.csv --threshold 0.10
+```bash
+# Run batch analysis on all files in data/
+python3 batch/batch_analysis.py
+```
 
-# Compare results in outputs directories
+### Example 3: Main Pipeline
+
+```bash
+# Run the main analysis pipeline
+python3 main_pipeline.py
+```
+
+## Directory Structure After Running
+
+```
+spongebobs-corpse/
+├── batch/
+│   ├── batch_analysis.py
+│   └── outputs/
+├── data/
+│   ├── dr lee go brr - 4mm.csv      # Raw data
+│   ├── dr lee go brr - 40mm.csv
+│   └── dr lee go brr - 52mm.csv
+├── docs/
+├── final_output/
+├── config.py
+├── ib_utils.py
+├── main_pipeline.py
+├── processing.py
+└── README.md
+```
 ```
 
 ### Example 3: Different Detection Methods

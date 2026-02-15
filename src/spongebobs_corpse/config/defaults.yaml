@@ -1,0 +1,10 @@
+analysis:
+  seed: 42
+  confidence_level: 0.95
+  regression_method: WLS
+  random_time_uncertainty_s: 0.01
+  random_force_uncertainty_n: 0.05
+io:
+  create_final_dir: true
+  figure_dpi: 400
+  manifest_path: batch/outputs/manifest_expected.json

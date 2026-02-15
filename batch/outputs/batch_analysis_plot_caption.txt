@@ -1,0 +1,4 @@
+Data: Mean peak force and mean contact duration versus pad thickness.
+Uncertainty: Error bars are combined uncertainty; shaded regions are 95% CI.
+n=35; fit method=WLS
+Legend and fit summaries are in the right-side gutter for print readability.

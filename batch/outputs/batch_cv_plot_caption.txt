@@ -1,0 +1,3 @@
+Data: Coefficient of variation of contact duration by thickness.
+Uncertainty: CV = SD/mean.
+n=35; fit method=Descriptive repeatability analysis

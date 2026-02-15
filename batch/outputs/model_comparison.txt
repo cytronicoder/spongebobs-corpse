@@ -1,0 +1,38 @@
+REGRESSION ANALYSIS WITH PARAMETER UNCERTAINTIES
+================================================================================
+
+--- peak_force (linear) ---
+  slope: -0.035343 +/- 0.002905
+  slope 95% CI: [-0.042812, -0.027875]
+  slope p-value: 6.63563e-05
+  intercept: 6.684059 +/- 0.156408
+  intercept 95% CI: [6.281999, 7.086119]
+  R^2: 0.9891
+  Adj. R^2: 0.9870
+
+--- contact_duration (linear) ---
+  slope: 0.000264 +/- 0.000126
+  slope 95% CI: [-0.000061, 0.000588]
+  slope p-value: 0.0909758
+  intercept: 0.242875 +/- 0.006055
+  intercept 95% CI: [0.227309, 0.258441]
+  R^2: 0.6269
+  Adj. R^2: 0.5522
+
+--- peak_force (powerlaw_sqrt) ---
+  slope: -0.449075 +/- 0.037572
+  slope 95% CI: [-0.545658, -0.352492]
+  slope p-value: 7.22792e-05
+  intercept: 8.039071 +/- 0.269433
+  intercept 95% CI: [7.346472, 8.731669]
+  R^2: 0.9549
+  Adj. R^2: 0.9459
+
+--- contact_duration (powerlaw_sqrt) ---
+  slope: 0.003422 +/- 0.001482
+  slope 95% CI: [-0.000388, 0.007233]
+  slope p-value: 0.0690341
+  intercept: 0.232518 +/- 0.009803
+  intercept 95% CI: [0.207318, 0.257717]
+  R^2: 0.7653
+  Adj. R^2: 0.7184
