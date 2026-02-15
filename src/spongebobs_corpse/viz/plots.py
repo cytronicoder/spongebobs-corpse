@@ -79,44 +79,42 @@ def draw_residual_plots(params_list: list[dict]):
     return fig
 
 
-def draw_full_model_figure(model_specs: list[tuple], summary_lines: list[str], cv_data=None):
+def draw_full_model_figure(model_specs: list[tuple], cv_data=None):
     apply_style()
     palette = get_palette()
 
     if cv_data is not None:
         nrows = 3
         height_ratios = [1.0, 1.0, 0.8]
-        figsize = (15, 14)
+        figsize = (11, 14)
     else:
         nrows = 2
         height_ratios = [1.0, 1.0]
-        figsize = (15, 10)
+        figsize = (11, 10)
 
     fig = plt.figure(figsize=figsize, constrained_layout=True)
-    gs = fig.add_gridspec(nrows, 3, width_ratios=[1.0, 1.0, 0.95], height_ratios=height_ratios)
+    gs = fig.add_gridspec(nrows, 2, height_ratios=height_ratios)
 
     axes = np.array([
         [fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[0, 1])],
         [fig.add_subplot(gs[1, 0]), fig.add_subplot(gs[1, 1])],
     ])
-    ax_gutter = fig.add_subplot(gs[0:2, 2])
-    ax_gutter.axis("off")
 
     for ax, spec in zip(axes.flat, model_specs):
         fit, x_label, y_label, title, color_name = spec
         draw_model_panel(ax, fit, x_label, y_label, title, palette[color_name])
 
-    handles, labels = axes[0, 0].get_legend_handles_labels()
-    order = []
-    for target in ("Data", "Model", "95% CI"):
-        for h, lbl in zip(handles, labels):
-            if lbl == target:
-                order.append((h, lbl))
-                break
-    if order:
-        draw_gutter_legend(ax_gutter, [x[0] for x in order], [x[1] for x in order], y_anchor=0.52)
-
-    draw_gutter_text(ax_gutter, summary_lines, title="Fit summary", y_start=0.98, line_step=0.07)
+    # Add legend to top row (one per column)
+    for col in range(2):
+        handles, labels = axes[0, col].get_legend_handles_labels()
+        order = []
+        for target in ("Data", "Model", "95% CI"):
+            for h, lbl in zip(handles, labels):
+                if lbl == target:
+                    order.append((h, lbl))
+                    break
+        if order:
+            axes[0, col].legend([x[0] for x in order], [x[1] for x in order], loc="upper left")
 
     if cv_data is not None:
         ax_cv = fig.add_subplot(gs[2, :])

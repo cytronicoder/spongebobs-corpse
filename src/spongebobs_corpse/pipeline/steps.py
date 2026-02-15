@@ -144,16 +144,6 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
     )
     summary_table_artifact = save_table(table, manager.output_file("summary_table_formatted.csv"))
 
-    fit_summary_lines = [
-        f"peak_force linear: s={models[0]['slope']:.4g} +/- {models[0]['slope_se']:.2g}, R^2={models[0]['r2']:.4f}",
-        f"contact_duration linear: s={models[1]['slope']:.4g} +/- {models[1]['slope_se']:.2g}, R^2={models[1]['r2']:.4f}",
-        f"peak_force powerlaw: b={models[2]['slope']:.4g} +/- {models[2]['slope_se']:.2g}, R^2={models[2]['r2']:.4f}",
-        f"contact_duration powerlaw: b={models[3]['slope']:.4g} +/- {models[3]['slope_se']:.2g}, R^2={models[3]['r2']:.4f}",
-        "",
-        "Error bars: combined uncertainty",
-        "u = sqrt(u_random^2 + u_instrument^2)",
-    ]
-
     specs = [
         (models[0], axis_label("Thickness h", "mm"), axis_label("Peak force F_peak", "N"), "Linear Model", "blue"),
         (models[1], axis_label("Thickness h", "mm"), axis_label("Contact duration tau", "s"), "Linear Model", "orange"),
@@ -161,7 +151,7 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
         (models[3], axis_label("sqrt(h)", "mm^0.5"), axis_label("Contact duration tau", "s"), "Power-law Model", "orange"),
     ]
 
-    fig_main = draw_full_model_figure(specs, fit_summary_lines, cv_data=summary)
+    fig_main = draw_full_model_figure(specs, cv_data=summary)
     save_figure(
         fig_main,
         stem="batch_analysis_plot",
