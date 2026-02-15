@@ -151,29 +151,29 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
     specs = [
         (
             models[0],
-            axis_label("Thickness h", "mm"),
-            axis_label("Peak force F_peak", "N"),
+            axis_label("Thickness h", "mm", use_math=True),
+            axis_label("Peak force F_peak", "N", use_math=True),
             "Linear Model",
             "blue",
         ),
         (
             models[1],
-            axis_label("Thickness h", "mm"),
-            axis_label("Contact duration tau", "s"),
+            axis_label("Thickness h", "mm", use_math=True),
+            axis_label("Contact duration tau", "s", use_math=True),
             "Linear Model",
             "orange",
         ),
         (
             models[2],
-            axis_label("sqrt(h)", "mm^0.5"),
-            axis_label("Peak force F_peak", "N"),
+            axis_label("sqrt(h)", "mm^0.5", use_math=True),
+            axis_label("Peak force F_peak", "N", use_math=True),
             "Power-law Model",
             "blue",
         ),
         (
             models[3],
-            axis_label("sqrt(h)", "mm^0.5"),
-            axis_label("Contact duration tau", "s"),
+            axis_label("sqrt(h)", "mm^0.5", use_math=True),
+            axis_label("Contact duration tau", "s", use_math=True),
             "Power-law Model",
             "orange",
         ),
@@ -193,7 +193,7 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
             ),
             "uncertainty": (
                 "Error bars are combined uncertainty; shaded regions are 95% CI. "
-                "Bottom panel: CV = SD/mean."
+                "Bottom panel: $\\mathrm{CV} = \\sigma/\\mu \\times 100\\%$."
             ),
             "method": config.analysis.regression_method,
             "n": int(summary["duration_s_count"].sum()),
@@ -210,7 +210,7 @@ def run_steps(config: AnalysisConfig, input_csv: Path, manager: OutputManager) -
         final_dir=manager.final_dir,
         caption_metadata={
             "data": "Coefficient of variation of contact duration by thickness.",
-            "uncertainty": "CV = SD/mean.",
+            "uncertainty": "$\\mathrm{CV} = \\sigma/\\mu \\times 100\\%$.",
             "method": "Descriptive repeatability analysis",
             "n": int(summary["duration_s_count"].sum()),
         },

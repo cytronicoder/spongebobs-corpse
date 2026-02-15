@@ -55,8 +55,8 @@ def _plot_cv_on_ax(ax, summary_df):
             fontsize=10,
         )
     ax.axhline(5, color="#D55E00", linestyle="--", linewidth=1.8, alpha=0.6, label="5% threshold")
-    ax.set_xlabel(axis_label("Pad thickness h", "mm"))
-    ax.set_ylabel(axis_label("Coefficient of variation CV", "%"))
+    ax.set_xlabel(axis_label("Pad thickness h", "mm", use_math=True))
+    ax.set_ylabel(axis_label("Coefficient of variation CV", "%", use_math=True))
     ax.set_title("Experimental repeatability")
     ax.grid(True, alpha=0.2, axis="y")
     return cv_values
@@ -85,8 +85,8 @@ def draw_residual_plots(params_list: list[dict]):
         residuals = params["residuals"]
         ax.scatter(fitted, residuals, alpha=0.7, s=32, edgecolor="black")
         ax.axhline(y=0, color="#b23a48", linestyle="--", linewidth=1.2)
-        ax.set_xlabel(axis_label("Fitted value", None))
-        ax.set_ylabel(axis_label("Residual", None))
+        ax.set_xlabel(axis_label("Fitted value", None, use_math=True))
+        ax.set_ylabel(axis_label("Residual", None, use_math=True))
         ax.set_title(f"Residuals: {name}")
         ax.grid(True, alpha=0.2, axis="y")
     return fig

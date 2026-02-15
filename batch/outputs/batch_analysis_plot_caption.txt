@@ -1,4 +1,4 @@
 Data: Mean peak force (blue), contact duration (orange), and coefficient of variation (bottom panel) versus thickness.
-Uncertainty: Error bars are combined uncertainty; shaded regions are 95% CI. Bottom panel: CV = SD/mean.
+Uncertainty: Error bars are combined uncertainty; shaded regions are 95% CI. Bottom panel: $\mathrm{CV} = \sigma/\mu \times 100\%$.
 n=35; fit method=WLS
 Top panels: linear vs power-law fits. Bottom panel: repeatability check.

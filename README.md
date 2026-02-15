@@ -63,7 +63,7 @@ Caption sidecars are written as:
 
 #### Generated outputs
 
-- `batch/outputs/batch_analysis_plot.png` — Multi-panel model comparison for `F_peak` and `tau` (PDF: `batch/outputs/batch_analysis_plot.pdf`)
+- `batch/outputs/batch_analysis_plot.png` — Multi-panel model comparison for $F_{\\mathrm{peak}}$ and $\\tau$ (PDF: `batch/outputs/batch_analysis_plot.pdf`)
 - `batch/outputs/batch_cv_plot.png` — Coefficient of variation by thickness (PDF: `batch/outputs/batch_cv_plot.pdf`)
 - `batch/outputs/residual_plots.png` — Residual diagnostics for fitted models (PDF: `batch/outputs/residual_plots.pdf`)
 - `batch/outputs/ANALYSIS_SUMMARY.txt`

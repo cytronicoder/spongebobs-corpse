@@ -8,11 +8,30 @@ from .labels import format_p_value, format_value_uncertainty
 
 def _build_model_line(model: Mapping[str, Any]) -> str:
     equation = model.get("equation", "Model not specified")
+    # convert simple plain-text equations to MathText-friendly LaTeX
+    if isinstance(equation, str) and not equation.strip().startswith("$"):
+        eq_tex = equation.replace("*", " ")
+        if "sqrt(" in eq_tex:
+            eq_tex = eq_tex.replace("sqrt(", "\\sqrt{").replace(")", "}")
+        equation = f"${eq_tex}$"
+
     params = model.get("parameters", {})
     parts = []
+
+    def _key_to_tex(key: str) -> str:
+        if "_" in key:
+            base, suffix = key.split("_", 1)
+            greek = {"tau": r"\\tau"}
+            if suffix in greek:
+                return rf"{base}_{{{greek[suffix]}}}"
+            return rf"{base}_{{\\mathrm{{{suffix}}}}}"
+        return key
+
     for key, value in params.items():
         unc = model.get("uncertainties", {}).get(key)
-        parts.append(f"{key}={format_value_uncertainty(value, unc)}")
+        key_tex = _key_to_tex(key)
+        parts.append(f"${key_tex}={format_value_uncertainty(value, unc)}$")
+
     suffix = f" ({'; '.join(parts)})" if parts else ""
     return f"Model: {equation}{suffix}"
 
