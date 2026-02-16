@@ -1,6 +1,4 @@
-# Methods
-
-## Pipeline map
+### Methods pipeline
 
 1. `io.load.load_batch_data`: load and normalize input table.
 2. `processing.preprocessing.validate_input_frame`: type and NaN filtering.
@@ -10,7 +8,7 @@
 6. `viz.plots`: standardized publication figures.
 7. `io.save`: uniform artifact output and caption sidecars.
 
-## Equations
+### Equations
 
 - Linear model: $y = m x + c$
 - Power-law linearized model: $y = a + b \sqrt{h}$

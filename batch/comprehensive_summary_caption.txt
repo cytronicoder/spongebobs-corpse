@@ -1,0 +1,6 @@
+Data: Contact duration, peak force, and CV across pad thickness conditions.
+Uncertainty: Error bars show 1 SD; confidence bands are 95% CI of mean fit response.
+Model: y = m*h + c (separate fits for tau and F_peak) (m_tau=0.0003 +/- 0.0001; c_tau=0.243 +/- 0.006; m_F=-0.035 +/- 0.003; c_F=6.7 +/- 0.2)
+Fit stats: R^2=0.6269, p = 0.091
+n=35; fit method=WLS / WLS
+Variables use SI-compatible units: h in mm, tau in s, F_peak in N.

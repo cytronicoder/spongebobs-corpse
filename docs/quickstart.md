@@ -1,4 +1,4 @@
-# Quickstart
+### Quickstart
 
 Run the full paper pipeline with one command:
 

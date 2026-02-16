@@ -1,4 +1,4 @@
-# Figures
+### Figures
 
 All final figures are generated through `viz.plots` and exported through `io.save.save_figure`:
 

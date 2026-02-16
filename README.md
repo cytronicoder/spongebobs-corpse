@@ -2,7 +2,7 @@
 
 This project analyzes force–time traces from impact tests on viscoelastic pads of varying thickness to quantify how thickness affects impact attenuation. The pipeline computes contact durations, extracts summary metrics (e.g., peak force), fits statistical models, and generates publication-ready figures, tables, and reports.
 
-[![Results](batch/outputs/batch_analysis_plot.png)](batch/outputs/batch_analysis_plot.png)
+[![Results](batch/final/comprehensive_summary.png)](batch/final/comprehensive_summary.png)
 
 > [!NOTE]
 > This repository contains the source code and data for my IBDP Physics HL Internal Assessment (IA). It is not intended for public use; feel free to explore for educational purposes.

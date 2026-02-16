@@ -1,4 +1,4 @@
-# Reproducibility
+### Reproducibility
 
 - Seed: default `42` (`analysis.seed` in `src/spongebobs_corpse/config/defaults.yaml`)
 - Deterministic command:

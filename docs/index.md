@@ -1,6 +1,4 @@
-# spongebobs-corpse documentation
-
-This package provides a deterministic, peer-review-ready analysis pipeline for viscoelastic impact attenuation experiments.
+### Documentation
 
 - [Installation](installation.md)
 - [Quickstart](quickstart.md)
